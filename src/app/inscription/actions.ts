@@ -34,7 +34,18 @@ export async function creerUnCompte(
     if (error.message.toLowerCase().includes("already")) {
       return { erreur: "Un compte existe déjà avec cet email." };
     }
-    return { erreur: "La création du compte a échoué. Réessayez dans un instant." };
+
+    // Le message de Supabase est remonté tel quel. C'est délibéré, et ça ne vaut
+    // que pour l'inscription : la connexion, elle, reste volontairement muette
+    // pour ne pas révéler quelles adresses ont un compte.
+    //
+    // À l'inscription, cette précaution n'a pas d'objet — le cas « un compte
+    // existe déjà » est traité juste au-dessus et dit exactement cela. Le reste
+    // relève de la configuration : quota d'envoi atteint, mot de passe refusé
+    // par la politique du projet, trigger de création de profil en échec. Trois
+    // causes qu'un message générique rend indiscernables, et qu'on ne peut
+    // diagnostiquer qu'en lisant les journaux — ce qui suppose d'y avoir accès.
+    return { erreur: `La création du compte a échoué : ${error.message}` };
   }
 
   redirect("/inscription/confirmez-votre-email");
