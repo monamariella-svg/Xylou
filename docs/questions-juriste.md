@@ -234,6 +234,25 @@ famille, l'établissement scolaire ? Y a-t-il responsabilité conjointe ?
 voir le contenu des dossiers. Cette séparation est-elle suffisante pour écarter
 sa responsabilité sur le contenu ?
 
+**7.4 — À TRANCHER AVANT LA PRODUCTION.** Pendant le pilote, une habilitation de
+référent peut être accordée sans aucune pièce justificative, sur la seule
+connaissance personnelle de l'administratrice — la première équipe est composée
+de gens qu'elle connaît, et leur imposer une procédure avant même d'avoir montré
+l'outil serait le meilleur moyen de ne jamais le leur montrer.
+
+Ce réglage ne peut pas survivre au pilote. Un référent ouvre des dossiers
+d'enfants handicapés, établit qui détient l'autorité parentale, accède aux
+données de santé.
+
+Questions : **quelles pièces exiger** au minimum ? L'attestation du directeur
+d'établissement suffit-elle, ou faut-il une pièce d'identité ? Une vérification
+d'identité s'impose-t-elle avant d'ouvrir l'accès à des données de santé
+d'enfants — et si oui, sous quelle forme ?
+
+*Provisoire dans le schéma* : une fonction `pieces_exigees()`, vide pendant le
+pilote, qui bloque l'acceptation dès qu'on la remplit. La bascule tient en une
+ligne, et l'écran d'instruction affiche déjà ce qui manquerait.
+
 ---
 
 ## 8. Ce que les CGU doivent couvrir

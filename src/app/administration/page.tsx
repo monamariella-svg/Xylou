@@ -23,6 +23,8 @@ type Demande = {
   types_fournis: string;
   pieces_perimees: number;
   depuis_jours: number;
+  /** Vide pendant le pilote : `pieces_exigees()` ne demande encore rien. */
+  manquantes: string;
 };
 
 type Renouvellement = {
@@ -225,8 +227,19 @@ export default async function PageAdministration() {
 
                 {/* Les pièces, ouvrables. Un compteur seul demanderait de
                     valider sans avoir rien lu. */}
-                {d.pieces === 0 ? (
+                {/* Ce que la politique en vigueur exige et qui manque. Vide
+                    pendant le pilote — `pieces_exigees()` ne demande encore
+                    rien — mais l'affichage est là, prêt pour le jour où elle
+                    demandera. */}
+                {d.manquantes ? (
                   <p className="mt-3 rounded-md border border-alerte bg-alerte-douce px-3 py-2 text-xs text-alerte">
+                    Pièce nécessaire manquante ou périmée : {d.manquantes}. La demande ne
+                    peut pas être accordée en l’état.
+                  </p>
+                ) : null}
+
+                {d.pieces === 0 ? (
+                  <p className="mt-3 rounded-md border border-bordure bg-fond px-3 py-2 text-xs text-texte-doux">
                     Aucune pièce justificative versée. Vous pouvez accorder
                     l’habilitation malgré tout, mais il faudra dire sur quoi vous vous
                     fondez.

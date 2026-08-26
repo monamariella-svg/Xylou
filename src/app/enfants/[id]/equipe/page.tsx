@@ -46,8 +46,9 @@ export default async function PageEquipe({
 
   if (!enfant) notFound();
 
-  const [{ data: intervenants }, { data: invitations }, { data: matieres }] =
+  const [{ data: peutComposer }, { data: intervenants }, { data: invitations }, { data: matieres }] =
     await Promise.all([
+      supabase.rpc("peut_composer_l_equipe", { p_enfant: id }),
       supabase
         .from("intervenants_enfant")
         .select("id, profil_id, role, fonction, principal, toutes_matieres, profils(prenom, nom, email)")
@@ -118,8 +119,10 @@ export default async function PageEquipe({
 
                 {/* Un titulaire de l'autorité parentale ne se retire pas d'ici :
                     la fonction de 0033 le refuse, et le proposer laisserait
-                    croire l'inverse. */}
-                {i.role !== "parent" ? (
+                    croire l'inverse. Depuis 0062, le retrait revient au
+                    référent — proposer le bouton à un parent produirait un
+                    refus au clic. */}
+                {i.role !== "parent" && peutComposer ? (
                   <form action={retirerDuDossier} className="mt-3 flex flex-wrap gap-2">
                     <input type="hidden" name="enfantId" value={id} />
                     <input type="hidden" name="profilId" value={i.profil_id} />
@@ -173,10 +176,27 @@ export default async function PageEquipe({
         </section>
       ) : null}
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Inviter quelqu’un</h2>
-        <FormulaireInvitation enfantId={id} matieres={matieres ?? []} />
-      </section>
+      {/* Composer l'équipe revient au référent : il connaît l'établissement et
+          peut vérifier qu'une adresse est bien celle du professeur qu'elle
+          prétend être. Un parent connaît le nom de l'enseignant, pas les moyens
+          de s'en assurer.
+          Proposer le formulaire à tout le monde produirait un refus à l'envoi —
+          une promesse qu'on ne tient pas. */}
+      {peutComposer ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Inviter quelqu’un</h2>
+          <FormulaireInvitation enfantId={id} matieres={matieres ?? []} />
+        </section>
+      ) : (
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold">Inviter quelqu’un</h2>
+          <p className="rounded-md border border-bordure bg-surface px-4 py-3 text-sm text-texte-doux">
+            L’équipe est composée par le référent du dossier : c’est lui qui répond des
+            personnes rattachées, comme l’administration répond de lui. Si quelqu’un doit
+            rejoindre le dossier, dites-le-lui — il l’invitera.
+          </p>
+        </section>
+      )}
     </main>
   );
 }
