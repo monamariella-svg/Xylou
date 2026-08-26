@@ -1,49 +1,32 @@
-"use client";
-
 import Link from "next/link";
-import { useActionState } from "react";
-import { seConnecter } from "./actions";
-import type { EtatAuth } from "../inscription/actions";
-import { BoutonSoumettre, Champ, MessageErreur, classesChamp } from "@/components/ui";
+import { FormulaireConnexion } from "./FormulaireConnexion";
 
-const ETAT_INITIAL: EtatAuth = {};
-
-export default function PageConnexion() {
-  const [etat, action] = useActionState(seConnecter, ETAT_INITIAL);
+export default async function PageConnexion({
+  searchParams,
+}: {
+  searchParams: Promise<{ invitation?: string }>;
+}) {
+  const { invitation } = await searchParams;
 
   return (
     <div className="mx-auto max-w-md">
       <h1 className="text-2xl font-semibold">Se connecter</h1>
 
-      <form action={action} className="mt-6 space-y-4">
-        <MessageErreur>{etat.erreur}</MessageErreur>
+      {invitation ? (
+        <p className="mt-2 rounded-md border border-accent bg-accent-doux px-4 py-3 text-sm text-accent">
+          Connectez-vous avec le compte dont l’adresse a reçu l’invitation. Vous y serez
+          ramené aussitôt après.
+        </p>
+      ) : null}
 
-        <Champ label="Email">
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className={classesChamp}
-          />
-        </Champ>
-
-        <Champ label="Mot de passe">
-          <input
-            name="motDePasse"
-            type="password"
-            required
-            autoComplete="current-password"
-            className={classesChamp}
-          />
-        </Champ>
-
-        <BoutonSoumettre>Se connecter</BoutonSoumettre>
-      </form>
+      <FormulaireConnexion invitation={invitation} />
 
       <p className="mt-6 text-sm text-texte-doux">
         Pas encore de compte ?{" "}
-        <Link href="/inscription" className="text-accent hover:underline">
+        <Link
+          href={invitation ? `/inscription?invitation=${invitation}` : "/inscription"}
+          className="text-accent hover:underline"
+        >
           En créer un
         </Link>
       </p>

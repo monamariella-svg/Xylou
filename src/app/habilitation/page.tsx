@@ -64,9 +64,27 @@ export default async function PageHabilitation() {
         </p>
       ) : demandeEnCours ? (
         <>
-          <p className="rounded-md border border-bordure bg-surface px-4 py-3 text-sm">
-            Votre demande est en cours d’instruction. Vous serez prévenu de la décision.
-          </p>
+          {/* Deux messages, et la différence n'est pas cosmétique. Annoncer
+              « en cours d'instruction » avant que les pièces soient versées
+              donne à la personne toutes les raisons de fermer la page — c'est
+              fait, elle n'a plus rien à faire. Elle a pourtant l'essentiel à
+              faire, et l'administration attendra un dossier qui ne viendra
+              jamais. */}
+          {(pieces ?? []).length === 0 ? (
+            <p className="rounded-md border border-alerte bg-alerte-douce px-4 py-3 text-sm text-alerte">
+              <strong>Votre demande n’est pas encore complète.</strong> Joignez les
+              documents qui attestent de votre fonction — l’administration ne peut pas
+              vérifier sans eux, et une demande sans pièce prend beaucoup plus longtemps à
+              instruire.
+            </p>
+          ) : (
+            <p className="rounded-md border border-bordure bg-surface px-4 py-3 text-sm">
+              Votre demande est en cours d’instruction, avec{" "}
+              {(pieces ?? []).length} document{(pieces ?? []).length > 1 ? "s" : ""}. Vous
+              serez prévenu de la décision. Vous pouvez encore en ajouter.
+            </p>
+          )}
+
           <PiecesJustificatives
             demandeId={demandeEnCours.id}
             pieces={(pieces ?? []) as Piece[]}

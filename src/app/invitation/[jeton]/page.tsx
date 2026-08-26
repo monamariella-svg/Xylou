@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { exigerUtilisateur } from "@/lib/session";
+import { createClient } from "@/lib/supabase/server";
+import { supabaseConfigure } from "@/lib/session";
 
 /**
  * L'acceptation d'une invitation.
@@ -20,10 +21,19 @@ export default async function PageInvitation({
 }) {
   const { jeton } = await params;
 
-  // `exigerUtilisateur` redirige vers la connexion si le compte n'existe pas
-  // encore. La personne devra s'inscrire avec l'adresse qui a reçu le lien,
-  // puis revenir : c'est la contrainte de la fonction, pas un oubli.
-  const { supabase } = await exigerUtilisateur();
+  if (!supabaseConfigure()) redirect("/configuration-requise");
+
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+
+  // Sans compte, on renvoie vers l'inscription **en emportant le jeton**. Sans
+  // ce détour, la personne s'inscrirait, atterrirait sur un tableau de bord
+  // vide, et n'aurait plus aucun moyen de retrouver le lien sinon en
+  // retournant dans ses messages — en supposant qu'elle comprenne qu'il faut
+  // le refaire.
+  if (!auth.user) {
+    redirect(`/inscription?invitation=${encodeURIComponent(jeton)}`);
+  }
 
   const { data: enfantId, error } = await supabase.rpc("accepter_l_invitation", {
     p_jeton: jeton,

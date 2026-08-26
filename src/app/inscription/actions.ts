@@ -48,5 +48,46 @@ export async function creerUnCompte(
     return { erreur: `La création du compte a échoué : ${error.message}` };
   }
 
+  // Le jeton d'invitation traverse l'inscription. Sans ce renvoi, quelqu'un qui
+  // suit un lien d'invitation sans compte s'inscrit, atterrit sur un tableau de
+  // bord vide, et n'a plus aucun moyen de retrouver le lien — sinon en
+  // retournant dans ses messages.
+  const invitation = String(formData.get("invitation") ?? "").trim();
+  if (invitation) {
+    redirect(`/invitation/${invitation}`);
+  }
+
+  // La demande d'habilitation part dans la foulée, sur les champs du même
+  // formulaire. C'est une seule déclaration — « je m'inscris, je veux être
+  // référent pour tel établissement, voici de qui je le tiens » — et la couper
+  // en deux obligerait la personne à retrouver où la poursuivre.
+  //
+  // Le compte reste « membre » : rien ici n'accorde de droit. Seule
+  // l'administration transforme la demande en habilitation.
+  if (String(formData.get("destination") ?? "") === "habilitation") {
+    const { error: erreurDemande } = await supabase.rpc("demander_l_habilitation", {
+      p_fonction: String(formData.get("fonction") ?? "").trim(),
+      p_organisation: String(formData.get("organisation") ?? "").trim(),
+      p_numero: String(formData.get("numero") ?? "").trim(),
+      p_motivation: String(formData.get("motivation") ?? "").trim(),
+      p_directeur_nom: String(formData.get("directeurNom") ?? "").trim(),
+      p_directeur_contact: String(formData.get("directeurContact") ?? "").trim(),
+    });
+
+    // Qu'elle ait abouti ou non, on renvoie au même endroit — et c'est
+    // volontaire. Le compte existe désormais : signaler un échec ici donnerait
+    // à croire que l'inscription elle-même a raté. La page d'habilitation
+    // représentera simplement le formulaire, prérempli de rien, et la personne
+    // recommencera cette partie-là seulement.
+    //
+    // Le cas le plus probable n'est d'ailleurs pas une faute de saisie mais
+    // l'absence de session : si la confirmation par courriel est active,
+    // `signUp` ne connecte pas, et l'appel part sans utilisateur. La demande se
+    // fera après la première connexion.
+    void erreurDemande;
+
+    redirect("/habilitation");
+  }
+
   redirect("/inscription/confirmez-votre-email");
 }

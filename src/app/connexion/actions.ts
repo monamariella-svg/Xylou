@@ -28,5 +28,13 @@ export async function seConnecter(
     return { erreur: "Email ou mot de passe incorrect." };
   }
 
+  // Même renvoi qu'à l'inscription : quelqu'un qui suit un lien d'invitation
+  // alors qu'il a déjà un compte passe par ici, et doit retrouver l'invitation
+  // plutôt qu'un tableau de bord.
+  const invitation = String(formData.get("invitation") ?? "").trim();
+  if (invitation) {
+    redirect(`/invitation/${invitation}`);
+  }
+
   redirect("/tableau-de-bord");
 }
