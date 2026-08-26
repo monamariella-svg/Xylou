@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* Palette sobre et peu contrastée sur les fonds, plus contrastée sur le texte.
+   Beaucoup d'enfants accompagnés ici sont sensibles aux surcharges visuelles :
+   l'interface adulte reste calme, et l'interface enfant (missions) reprendra
+   ces mêmes bases avant d'y ajouter l'univers du projet moteur. */
+:root {
+  --fond: #fbfaf8;
+  --surface: #ffffff;
+  --bordure: #e6e2db;
+  --texte: #1f1d1a;
+  --texte-doux: #6b655c;
+  --accent: #2f6f5e;
+  --accent-doux: #e8f1ee;
+  --alerte: #a3402f;
+  --alerte-douce: #fbeeeb;
+}
+
+@theme inline {
+  --color-fond: var(--fond);
+  --color-surface: var(--surface);
+  --color-bordure: var(--bordure);
+  --color-texte: var(--texte);
+  --color-texte-doux: var(--texte-doux);
+  --color-accent: var(--accent);
+  --color-accent-doux: var(--accent-doux);
+  --color-alerte: var(--alerte);
+  --color-alerte-douce: var(--alerte-douce);
+}
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* L'anneau de focus reste visible partout : une navigation entièrement au
+   clavier doit rester possible sans jamais perdre le curseur de vue. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
