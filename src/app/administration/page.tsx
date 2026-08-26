@@ -17,6 +17,8 @@ type Demande = {
   organisation: string;
   numero_professionnel: string;
   motivation: string;
+  directeur_nom: string;
+  directeur_contact: string;
   pieces: number;
   types_fournis: string;
   pieces_perimees: number;
@@ -53,6 +55,56 @@ type APurger = {
   sur_demande: boolean;
 };
 
+type PieceAffichee = {
+  id: string;
+  demande_id: string;
+  type_piece: string;
+  libelle: string;
+  valable_jusqu_au: string | null;
+  url: string | null;
+};
+
+const LIBELLE_PIECE: Record<string, string> = {
+  piece_identite: "Pièce d’identité",
+  carte_professionnelle: "Carte professionnelle",
+  attestation_employeur: "Attestation d’employeur",
+  attestation_direction: "Attestation de direction",
+  diplome: "Diplôme",
+  agrement: "Agrément",
+  assurance_responsabilite: "Assurance",
+  autre: "Autre document",
+};
+
+async function chargerLesPieces(
+  supabase: Awaited<ReturnType<typeof exigerUtilisateur>>["supabase"],
+  demandeIds: string[],
+): Promise<PieceAffichee[]> {
+  if (demandeIds.length === 0) return [];
+
+  const { data } = await supabase
+    .from("habilitation_pieces")
+    .select("id, demande_id, type_piece, libelle, chemin, valable_jusqu_au")
+    .in("demande_id", demandeIds)
+    .order("deposee_le");
+
+  const lignes = (data ?? []) as (PieceAffichee & { chemin: string })[];
+  if (lignes.length === 0) return [];
+
+  // En un seul appel plutôt qu'un par fichier : signer dix pièces une par une
+  // ferait dix allers-retours pour afficher une page.
+  const { data: signees } = await supabase.storage
+    .from("habilitations")
+    .createSignedUrls(
+      lignes.map((l) => l.chemin),
+      600,
+    );
+
+  return lignes.map((ligne, i) => ({
+    ...ligne,
+    url: signees?.[i]?.signedUrl ?? null,
+  }));
+}
+
 export default async function PageAdministration() {
   const { supabase, utilisateur } = await exigerUtilisateur();
 
@@ -76,6 +128,18 @@ export default async function PageAdministration() {
     ]);
 
   const demandes = (habilitations.data ?? []) as Demande[];
+
+  // Les pièces elles-mêmes, avec un lien d'ouverture. Sans elles, l'écran dirait
+  // « trois documents versés » sans permettre de les lire — ce qui reviendrait à
+  // demander de valider sur la foi d'un compteur.
+  //
+  // Les liens sont signés et valent dix minutes : le bucket est privé, et une
+  // URL permanente vers une pièce d'identité traînerait ensuite dans un
+  // historique de navigation.
+  const pieces = await chargerLesPieces(
+    supabase,
+    demandes.map((d) => d.demande_id),
+  );
   const aRenouveler = (renouvellements.data ?? []) as Renouvellement[];
   const enSuppression = (suppressions.data ?? []) as Suppression[];
   const purgeables = (aPurger.data ?? []) as APurger[];
@@ -142,21 +206,65 @@ export default async function PageAdministration() {
                   </div>
                 </dl>
 
+                {/* Mis en évidence, et non noyé dans la liste : c'est le seul
+                    élément de la demande qui se vérifie par un appel. Le reste
+                    est déclaratif. */}
+                {d.directeur_nom ? (
+                  <p className="mt-3 rounded-md border border-bordure bg-fond px-3 py-2 text-sm">
+                    <span className="text-texte-doux">Atteste : </span>
+                    <span className="font-medium">{d.directeur_nom}</span>
+                    {d.directeur_contact ? (
+                      <span className="ml-2 text-texte-doux">— {d.directeur_contact}</span>
+                    ) : null}
+                  </p>
+                ) : null}
+
                 {d.motivation ? (
                   <p className="mt-2 whitespace-pre-line text-sm">{d.motivation}</p>
                 ) : null}
 
-                {/* Ce qui a été versé, et ce qui a expiré. Sans ces deux
-                    chiffres, l'instruction se fait sur la seule bonne foi du
-                    formulaire. */}
-                <p className="mt-2 text-xs text-texte-doux">
-                  {d.pieces === 0
-                    ? "Aucune pièce justificative versée."
-                    : `${d.pieces} pièce${d.pieces > 1 ? "s" : ""} : ${d.types_fournis}`}
-                  {d.pieces_perimees > 0
-                    ? ` — dont ${d.pieces_perimees} périmée${d.pieces_perimees > 1 ? "s" : ""}.`
-                    : ""}
-                </p>
+                {/* Les pièces, ouvrables. Un compteur seul demanderait de
+                    valider sans avoir rien lu. */}
+                {d.pieces === 0 ? (
+                  <p className="mt-3 rounded-md border border-alerte bg-alerte-douce px-3 py-2 text-xs text-alerte">
+                    Aucune pièce justificative versée. Vous pouvez accorder
+                    l’habilitation malgré tout, mais il faudra dire sur quoi vous vous
+                    fondez.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-1">
+                    {pieces
+                      .filter((p) => p.demande_id === d.demande_id)
+                      .map((p) => {
+                        const perimee =
+                          p.valable_jusqu_au !== null &&
+                          new Date(p.valable_jusqu_au) < new Date();
+                        return (
+                          <li key={p.id} className="flex flex-wrap items-baseline gap-2 text-sm">
+                            {p.url ? (
+                              <a
+                                href={p.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-accent underline"
+                              >
+                                {LIBELLE_PIECE[p.type_piece] ?? p.type_piece}
+                              </a>
+                            ) : (
+                              <span>{LIBELLE_PIECE[p.type_piece] ?? p.type_piece}</span>
+                            )}
+                            <span className="text-xs text-texte-doux">{p.libelle}</span>
+                            {perimee ? (
+                              <span className="text-xs text-alerte">
+                                périmée le{" "}
+                                {new Date(p.valable_jusqu_au!).toLocaleDateString("fr-FR")}
+                              </span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                  </ul>
+                )}
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <form action={accepterHabilitation} className="space-y-2 rounded-md border border-bordure p-3">

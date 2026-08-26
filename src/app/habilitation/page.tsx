@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { exigerUtilisateur } from "@/lib/session";
 import { FormulaireHabilitation } from "./FormulaireHabilitation";
+import { PiecesJustificatives, type Piece } from "./PiecesJustificatives";
 
 const LIBELLE_STATUT: Record<string, string> = {
   en_attente: "En cours d’instruction",
@@ -22,7 +23,18 @@ export default async function PageHabilitation() {
 
   const dejaReferent =
     profil?.role_plateforme === "referent" || profil?.role_plateforme === "admin";
-  const enCours = (demandes ?? []).some((d) => d.statut === "en_attente");
+  const demandeEnCours = (demandes ?? []).find((d) => d.statut === "en_attente");
+
+  // Les pièces se versent après la demande, et pas avant : la politique de 0054
+  // vérifie que le chemin du fichier correspond à une demande existante dont
+  // l'appelant est l'auteur. Sans demande, il n'y a pas de dossier où déposer.
+  const { data: pieces } = demandeEnCours
+    ? await supabase
+        .from("habilitation_pieces")
+        .select("id, type_piece, libelle, delivree_le, valable_jusqu_au")
+        .eq("demande_id", demandeEnCours.id)
+        .order("deposee_le")
+    : { data: [] };
 
   return (
     <main className="mx-auto max-w-2xl space-y-8 px-4 py-8">
@@ -50,18 +62,23 @@ export default async function PageHabilitation() {
         <p className="rounded-md border border-accent bg-accent-doux px-4 py-3 text-sm text-accent">
           Votre compte peut déjà ouvrir des dossiers.
         </p>
-      ) : enCours ? (
-        <p className="rounded-md border border-bordure bg-surface px-4 py-3 text-sm">
-          Votre demande est en cours d’instruction. Vous serez prévenu de la décision.
-        </p>
+      ) : demandeEnCours ? (
+        <>
+          <p className="rounded-md border border-bordure bg-surface px-4 py-3 text-sm">
+            Votre demande est en cours d’instruction. Vous serez prévenu de la décision.
+          </p>
+          <PiecesJustificatives
+            demandeId={demandeEnCours.id}
+            pieces={(pieces ?? []) as Piece[]}
+          />
+        </>
       ) : (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Demander l’habilitation</h2>
           <FormulaireHabilitation />
           <p className="text-xs text-texte-doux">
-            L’envoi de pièces justificatives — carte professionnelle, attestation de
-            direction, agrément — n’est pas encore possible depuis cette page.
-            L’administration vous les demandera si nécessaire.
+            Vous pourrez joindre vos pièces justificatives juste après l’envoi de cette
+            demande.
           </p>
         </section>
       )}

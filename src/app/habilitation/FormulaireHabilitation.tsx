@@ -25,9 +25,35 @@ export function FormulaireHabilitation() {
         <input name="fonction" required minLength={3} className={classesChamp} />
       </Champ>
 
-      <Champ label="Structure ou établissement" aide="Facultatif.">
-        <input name="organisation" className={classesChamp} />
+      <Champ
+        label="Établissement ou structure"
+        aide="Le collège, l'IME, le service où vous exercez."
+      >
+        <input name="organisation" required minLength={2} className={classesChamp} />
       </Champ>
+
+      {/* Le directeur n'est pas une formalité : c'est la personne que
+          l'administration appellera pour vérifier. Une attestation qu'on ne
+          peut pas recouper ne vaut que la confiance qu'on accorde à celui qui
+          la présente — et il s'agit d'ouvrir des dossiers d'enfants. */}
+      <fieldset className="space-y-4 rounded-md border border-bordure bg-surface p-4">
+        <legend className="px-1 text-sm font-medium">Direction de l’établissement</legend>
+        <p className="text-xs text-texte-doux">
+          C’est elle qui atteste de votre fonction. L’administration peut la contacter
+          pour vérifier avant d’accorder l’habilitation.
+        </p>
+
+        <Champ label="Nom du directeur ou de la directrice">
+          <input name="directeurNom" required minLength={2} className={classesChamp} />
+        </Champ>
+
+        <Champ
+          label="Comment le joindre"
+          aide="Adresse électronique ou téléphone de l'établissement."
+        >
+          <input name="directeurContact" required minLength={5} className={classesChamp} />
+        </Champ>
+      </fieldset>
 
       <Champ
         label="Numéro professionnel"
