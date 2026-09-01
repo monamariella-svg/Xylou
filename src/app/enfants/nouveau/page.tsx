@@ -27,9 +27,18 @@ export default function PageNouvelEnfant() {
       <form action={action} className="mt-6 space-y-5">
         <MessageErreur>{etat.erreur}</MessageErreur>
 
-        <Champ label="Prénom">
-          <input name="prenom" required className={classesChamp} />
-        </Champ>
+        {/* Le nom est facultatif mais proposé d'emblée : un référent suit
+            plusieurs dizaines de dossiers, et deux « Lucas » dans la même liste
+            ne se distinguent pas. Voir la migration 0065. */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Champ label="Prénom">
+            <input name="prenom" required className={classesChamp} />
+          </Champ>
+
+          <Champ label="Nom" aide="Facultatif. Pour distinguer deux enfants du même prénom.">
+            <input name="nom" className={classesChamp} />
+          </Champ>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Champ label="Classe">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { exigerUtilisateur } from "@/lib/session";
+import { nomAffiche } from "@/lib/domaine";
 import {
   textesASigner,
   etatDesConsentements,
@@ -18,7 +19,7 @@ export default async function PageConsentements({
 
   const { data: enfant } = await supabase
     .from("enfants")
-    .select("id, prenom")
+    .select("id, prenom, nom")
     .eq("id", id)
     .maybeSingle();
 
@@ -38,7 +39,7 @@ export default async function PageConsentements({
     <main className="mx-auto max-w-3xl space-y-8 px-4 py-8">
       <header className="space-y-1">
         <Link href={`/enfants/${id}`} className="text-sm text-texte-doux hover:underline">
-          ← Dossier de {enfant.prenom}
+          ← Dossier de {nomAffiche(enfant.prenom, enfant.nom)}
         </Link>
         <h1 className="text-2xl font-semibold">Autorisations</h1>
         <p className="max-w-prose text-sm text-texte-doux">

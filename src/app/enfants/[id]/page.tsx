@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { exigerUtilisateur } from "@/lib/session";
 import {
   lireLexique,
+  nomAffiche,
   type NiveauClasse,
   type ProfilCommunication,
   type UniversMoteur,
@@ -16,6 +17,7 @@ import ProjetMoteurForm from "./ProjetMoteurForm";
 type Enfant = {
   id: string;
   prenom: string;
+  nom: string;
   classe: NiveauClasse | null;
   communication: ProfilCommunication;
   date_naissance: string | null;
@@ -35,7 +37,7 @@ export default async function PageEnfant({
 
   const { data: ligneEnfant } = await supabase
     .from("enfants")
-    .select("id, prenom, classe, communication, date_naissance")
+    .select("id, prenom, nom, classe, communication, date_naissance")
     .eq("id", id)
     .maybeSingle();
 
@@ -92,7 +94,9 @@ export default async function PageEnfant({
         <Link href="/tableau-de-bord" className="text-sm text-texte-doux hover:underline">
           ← Tableau de bord
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold">{enfant.prenom}</h1>
+        <h1 className="mt-2 text-2xl font-semibold">
+          {nomAffiche(enfant.prenom, enfant.nom)}
+        </h1>
 
         <nav className="mt-3 flex flex-wrap gap-3 text-sm">
           <Link
@@ -133,6 +137,7 @@ export default async function PageEnfant({
         <FicheEnfantForm
           enfantId={enfant.id}
           prenom={enfant.prenom}
+          nom={enfant.nom}
           classe={enfant.classe}
           communication={enfant.communication}
           dateNaissance={enfant.date_naissance}

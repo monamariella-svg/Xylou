@@ -24,12 +24,14 @@ const ETAT_INITIAL: EtatFormulaire = {};
 export default function FicheEnfantForm({
   enfantId,
   prenom,
+  nom,
   classe,
   communication,
   dateNaissance,
 }: {
   enfantId: string;
   prenom: string;
+  nom: string;
   classe: NiveauClasse | null;
   communication: ProfilCommunication;
   dateNaissance: string | null;
@@ -42,11 +44,17 @@ export default function FicheEnfantForm({
       <MessageErreur>{etat.erreur}</MessageErreur>
       <MessageSucces>{etat.succes}</MessageSucces>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Champ label="Prénom">
           <input name="prenom" defaultValue={prenom} required className={classesChamp} />
         </Champ>
 
+        <Champ label="Nom" aide="Facultatif. Pour distinguer deux enfants du même prénom.">
+          <input name="nom" defaultValue={nom} className={classesChamp} />
+        </Champ>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <Champ label="Classe">
           <select name="classe" defaultValue={classe ?? ""} className={classesChamp}>
             <option value="">Non renseignée</option>

@@ -105,6 +105,13 @@ export const LIBELLE_ROLE: Record<RoleIntervenant, string> = {
   enseignant: "Enseignant",
 };
 
+// Le nom affiché d'un enfant, composé en un seul endroit. Le nom de famille est
+// facultatif : chaque écran qui le recomposerait à sa façon finirait par afficher
+// un prénom suivi d'une espace. Pendant du `nom_affiche()` de la migration 0065.
+export function nomAffiche(prenom: string, nom?: string | null): string {
+  return `${prenom} ${nom ?? ""}`.trim();
+}
+
 export const MAITRISES = [
   "non_evaluee", "a_travailler", "en_cours", "acquise", "point_fort",
 ] as const;

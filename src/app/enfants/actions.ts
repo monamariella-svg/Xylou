@@ -39,6 +39,7 @@ export async function creerUnEnfant(
 
   const prenom = String(formData.get("prenom") ?? "").trim();
   if (!prenom) return { erreur: "Le prénom est nécessaire." };
+  const nom = String(formData.get("nom") ?? "").trim();
 
   const classe = lireEnum<NiveauClasse>(formData.get("classe"), NIVEAUX_CLASSE);
   const communication =
@@ -57,6 +58,7 @@ export async function creerUnEnfant(
     .from("enfants")
     .insert({
       prenom,
+      nom,
       classe,
       communication,
       date_naissance: dateNaissance,
@@ -131,6 +133,7 @@ export async function majFicheEnfant(
     .from("enfants")
     .update({
       prenom,
+      nom: String(formData.get("nom") ?? "").trim(),
       classe: lireEnum<NiveauClasse>(formData.get("classe"), NIVEAUX_CLASSE),
       communication:
         lireEnum<ProfilCommunication>(

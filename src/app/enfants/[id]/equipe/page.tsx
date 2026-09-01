@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { exigerUtilisateur } from "@/lib/session";
+import { nomAffiche } from "@/lib/domaine";
 import { FormulaireInvitation } from "./FormulaireInvitation";
 import { annulerInvitation, retirerDuDossier } from "./actions";
 
@@ -40,7 +41,7 @@ export default async function PageEquipe({
 
   const { data: enfant } = await supabase
     .from("enfants")
-    .select("id, prenom, titulaires_autorite_parentale")
+    .select("id, prenom, nom, titulaires_autorite_parentale")
     .eq("id", id)
     .maybeSingle();
 
@@ -73,7 +74,7 @@ export default async function PageEquipe({
     <main className="mx-auto max-w-3xl space-y-8 px-4 py-8">
       <header className="space-y-1">
         <Link href={`/enfants/${id}`} className="text-sm text-texte-doux hover:underline">
-          ← Dossier de {enfant.prenom}
+          ← Dossier de {nomAffiche(enfant.prenom, enfant.nom)}
         </Link>
         <h1 className="text-2xl font-semibold">Équipe</h1>
         <p className="max-w-prose text-sm text-texte-doux">

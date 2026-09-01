@@ -41,7 +41,7 @@ type Renouvellement = {
 type Suppression = {
   demande_id: string;
   enfant_id: string;
-  prenom: string;
+  enfant: string;
   motif: string;
   statut: string;
   accords: number;
@@ -52,7 +52,7 @@ type Suppression = {
 
 type APurger = {
   enfant_id: string;
-  prenom: string;
+  enfant: string;
   purge_due_le: string;
   jours_de_retard: number;
   sur_demande: boolean;
@@ -383,7 +383,7 @@ export default async function PageAdministration() {
                 className="rounded-lg border border-bordure bg-surface p-4 text-sm"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-medium">{s.prenom}</span>
+                  <span className="font-medium">{s.enfant}</span>
                   <span className="text-xs text-texte-doux">
                     {s.accords} accord{s.accords > 1 ? "s" : ""} sur {s.titulaires}
                   </span>
@@ -434,7 +434,7 @@ export default async function PageAdministration() {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-alerte bg-surface p-4 text-sm"
               >
                 <span>
-                  <span className="font-medium">{p.prenom}</span>
+                  <span className="font-medium">{p.enfant}</span>
                   <span className="ml-2 text-xs text-texte-doux">
                     dû depuis {p.jours_de_retard} jour{p.jours_de_retard > 1 ? "s" : ""}
                     {p.sur_demande ? " · suppression demandée" : " · archivage à terme"}

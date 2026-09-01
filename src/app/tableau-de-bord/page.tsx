@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { exigerUtilisateur } from "@/lib/session";
-import { LIBELLE_CLASSE, LIBELLE_UNIVERS, type NiveauClasse, type UniversMoteur } from "@/lib/domaine";
+import {
+  LIBELLE_CLASSE,
+  LIBELLE_UNIVERS,
+  nomAffiche,
+  type NiveauClasse,
+  type UniversMoteur,
+} from "@/lib/domaine";
 import { marquerToutCommeLu } from "./actions";
 
 type ProjetMoteur = { titre: string; univers: UniversMoteur; actif: boolean };
 type LigneEnfant = {
   id: string;
   prenom: string;
+  nom: string;
   classe: NiveauClasse | null;
   projets_moteurs: ProjetMoteur[];
 };
@@ -28,7 +35,7 @@ export default async function PageTableauDeBord() {
   const [{ data }, { data: profil }, { data: nonLues }] = await Promise.all([
     supabase
       .from("enfants")
-      .select("id, prenom, classe, projets_moteurs(titre, univers, actif)")
+      .select("id, prenom, nom, classe, projets_moteurs(titre, univers, actif)")
       .is("archive_le", null)
       .order("cree_le", { ascending: true }),
     supabase
@@ -164,7 +171,7 @@ export default async function PageTableauDeBord() {
                     className="block rounded-lg border border-bordure bg-surface p-4 hover:border-accent"
                   >
                     <div className="flex items-baseline justify-between gap-4">
-                      <span className="font-medium">{enfant.prenom}</span>
+                      <span className="font-medium">{nomAffiche(enfant.prenom, enfant.nom)}</span>
                       <span className="text-sm text-texte-doux">
                         {enfant.classe ? LIBELLE_CLASSE[enfant.classe] : "Classe non renseignée"}
                       </span>
