@@ -126,15 +126,31 @@ export default async function PageTableauDeBord() {
                 : "Vous verrez ici les dossiers auxquels vous êtes rattaché. L'accès se fait par invitation : le référent qui suit l'enfant vous enverra un lien."}
             </p>
 
+            {/* Détaché du paragraphe, et non fondu dedans : c'est l'isolement
+                qui rend visible, pas la couleur. Un lien au fil du texte reste
+                invisible même en rouge — et le rouge, lui, ferait craindre une
+                erreur là où il s'agit d'une invitation à agir.
+                C'est la seule porte de sortie pour quelqu'un qui n'attend aucune
+                invitation : la manquer le laisse devant un écran vide sans rien
+                à faire. */}
             {!peutOuvrirUnDossier ? (
-              <p className="mt-2 text-sm text-texte-doux">
-                Si vous accompagnez des enfants à titre professionnel et devez pouvoir
-                ouvrir des dossiers,{" "}
-                <Link href="/habilitation" className="text-accent hover:underline">
-                  demandez votre habilitation de référent
-                </Link>
-                .
-              </p>
+              <Link
+                href="/habilitation"
+                className="mt-5 flex items-baseline justify-between gap-3 rounded-md border-2 border-accent bg-accent-doux px-4 py-3 hover:opacity-90"
+              >
+                <span>
+                  <span className="block text-sm font-semibold text-accent">
+                    Demander une habilitation de référent
+                  </span>
+                  <span className="block text-xs text-texte-doux">
+                    Si vous accompagnez des enfants à titre professionnel et devez
+                    pouvoir ouvrir des dossiers.
+                  </span>
+                </span>
+                <span aria-hidden="true" className="text-accent">
+                  →
+                </span>
+              </Link>
             ) : null}
           </div>
         ) : (

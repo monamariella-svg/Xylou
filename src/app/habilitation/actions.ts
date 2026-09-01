@@ -20,6 +20,7 @@ export async function demanderLHabilitation(
     p_motivation: String(formData.get("motivation") ?? "").trim(),
     p_directeur_nom: String(formData.get("directeurNom") ?? "").trim(),
     p_directeur_contact: String(formData.get("directeurContact") ?? "").trim(),
+    p_etablissement_adresse: String(formData.get("etablissementAdresse") ?? "").trim(),
   });
 
   // Les messages de la fonction sont écrits pour être lus : « votre compte a

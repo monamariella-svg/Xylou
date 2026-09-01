@@ -72,6 +72,7 @@ export async function creerUnCompte(
       p_motivation: String(formData.get("motivation") ?? "").trim(),
       p_directeur_nom: String(formData.get("directeurNom") ?? "").trim(),
       p_directeur_contact: String(formData.get("directeurContact") ?? "").trim(),
+      p_etablissement_adresse: String(formData.get("etablissementAdresse") ?? "").trim(),
     });
 
     // Qu'elle ait abouti ou non, on renvoie au même endroit — et c'est

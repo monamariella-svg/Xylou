@@ -113,6 +113,19 @@ export function FormulaireInscription({ invitation }: { invitation?: string }) {
             <input name="organisation" required minLength={2} className={classesChamp} />
           </Champ>
 
+          <Champ
+            label="Adresse de l’établissement"
+            aide="Son nom seul ne l'identifie pas : il existe une trentaine de « collège Jean Moulin » en France."
+          >
+            <textarea
+              name="etablissementAdresse"
+              required
+              minLength={5}
+              rows={2}
+              className={classesChamp}
+            />
+          </Champ>
+
           <Champ label="Numéro professionnel" aide="ADELI, RPPS, ou tout identifiant qui permet de vous vérifier. Facultatif.">
             <input name="numero" className={classesChamp} />
           </Champ>

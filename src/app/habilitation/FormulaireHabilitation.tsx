@@ -32,6 +32,19 @@ export function FormulaireHabilitation() {
         <input name="organisation" required minLength={2} className={classesChamp} />
       </Champ>
 
+      <Champ
+        label="Adresse de l’établissement"
+        aide="Son nom seul ne l'identifie pas : il existe une trentaine de « collège Jean Moulin » en France."
+      >
+        <textarea
+          name="etablissementAdresse"
+          required
+          minLength={5}
+          rows={2}
+          className={classesChamp}
+        />
+      </Champ>
+
       {/* Le directeur n'est pas une formalité : c'est la personne que
           l'administration appellera pour vérifier. Une attestation qu'on ne
           peut pas recouper ne vaut que la confiance qu'on accorde à celui qui

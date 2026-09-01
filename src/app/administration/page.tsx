@@ -15,6 +15,7 @@ type Demande = {
   email: string | null;
   fonction: string;
   organisation: string;
+  etablissement_adresse: string;
   numero_professionnel: string;
   motivation: string;
   directeur_nom: string;
@@ -193,7 +194,14 @@ export default async function PageAdministration() {
                   {d.organisation ? (
                     <div className="flex gap-2">
                       <dt className="text-texte-doux">Structure</dt>
-                      <dd>{d.organisation}</dd>
+                      <dd>
+                        {d.organisation}
+                        {d.etablissement_adresse ? (
+                          <span className="block whitespace-pre-line text-xs text-texte-doux">
+                            {d.etablissement_adresse}
+                          </span>
+                        ) : null}
+                      </dd>
                     </div>
                   ) : null}
                   {d.numero_professionnel ? (
