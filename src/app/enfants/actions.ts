@@ -42,10 +42,13 @@ export async function creerUnEnfant(
   const nom = String(formData.get("nom") ?? "").trim();
 
   const classe = lireEnum<NiveauClasse>(formData.get("classe"), NIVEAUX_CLASSE);
-  const communication =
-    lireEnum<ProfilCommunication>(formData.get("communication"), PROFILS_COMMUNICATION) ??
-    "verbal";
-  const dateNaissance = String(formData.get("dateNaissance") ?? "").trim() || null;
+
+  // Ni date de naissance ni profil de communication ici. Le référent ouvre le
+  // dossier avant que la famille l'ait rejoint : les lui demander maintenant,
+  // c'est lui demander de supposer — et une supposition enregistrée ne se
+  // distingue plus d'un fait. La colonne `communication` a un défaut en base
+  // ('verbal', migration 0001) ; on le laisse s'appliquer plutôt que d'écrire
+  // la même valeur en la faisant passer pour un choix.
 
   // Combien de personnes détiennent l'autorité parentale. Deux par défaut, et
   // le défaut compte : à un, l'oubli laisserait un parent valider seul un
@@ -60,8 +63,6 @@ export async function creerUnEnfant(
       prenom,
       nom,
       classe,
-      communication,
-      date_naissance: dateNaissance,
       titulaires_autorite_parentale: titulaires,
       cree_par: utilisateur.id,
     })
@@ -113,7 +114,12 @@ export async function creerUnEnfant(
     detail: { titulaires_autorite_parentale: titulaires },
   });
 
-  redirect(`/enfants/${enfant.id}`);
+  // Vers l'équipe, pas vers la fiche. L'ordre n'est pas cosmétique : presque
+  // tout ce que la fiche demande — la date de naissance, le mode de
+  // communication, les centres d'intérêt, les aménagements — appartient à la
+  // famille. Ouvrir sur un formulaire que le référent ne peut pas remplir
+  // l'invite à le remplir quand même.
+  redirect(`/enfants/${enfant.id}/equipe`);
 }
 
 // --------------------------------------------------------------- fiche

@@ -44,6 +44,21 @@ Nous avons choisi que oui — un consentement porte sur un texte, pas sur un
 sujet. Est-ce exigé, ou peut-on ne redemander qu'en cas de changement
 substantiel ?
 
+**1.8** Les quatre autorisations sont désormais **toutes indispensables** :
+sans partage avec l’équipe, aucun enseignant ne voit le dossier ; sans recours à
+l’IA, il n’y a plus d’adaptation des contenus. Un refus n’ouvre donc sur rien.
+
+Or un consentement doit être **libre**. La question : ces deux points relèvent-ils
+encore du consentement, ou de l’exécution du service — auquel cas ils se décrivent
+dans les CGU et ne se demandent pas ? Nous soupçonnons que seul le traitement des
+**données de santé** relève réellement du consentement, et que le reste devrait
+changer de base légale plutôt que de rester une case à cocher qu’on ne peut pas
+décocher.
+
+*Provisoire dans le schéma* : les quatre textes sont `obligatoire = true`
+(migration 0066), et `signer_les_consentements()` refuse le refus d’un texte
+obligatoire. Rien n’empêchera de rebasculer deux d’entre eux en publiant une v3.
+
 *Provisoire dans le schéma* : table `textes_consentement` versionnée et figée
 après publication ; `consentements` porte le texte signé, la signature, l'IP et
 l'agent ; aucune modification possible après coup, seule la révocation s'écrit.

@@ -18,6 +18,7 @@ type Enfant = {
   id: string;
   prenom: string;
   nom: string;
+  titulaires_autorite_parentale: number | null;
   classe: NiveauClasse | null;
   communication: ProfilCommunication;
   date_naissance: string | null;
@@ -37,7 +38,7 @@ export default async function PageEnfant({
 
   const { data: ligneEnfant } = await supabase
     .from("enfants")
-    .select("id, prenom, nom, classe, communication, date_naissance")
+    .select("id, prenom, nom, classe, communication, date_naissance, titulaires_autorite_parentale")
     .eq("id", id)
     .maybeSingle();
 
@@ -48,8 +49,13 @@ export default async function PageEnfant({
   // cas, et l'interface ne doit pas révéler laquelle des deux situations c'est.
   if (!enfant) notFound();
 
-  const [{ data: sante }, { data: centres }, { data: projet }, { data: role }] =
-    await Promise.all([
+  const [
+    { data: sante },
+    { data: centres },
+    { data: projet },
+    { data: role },
+    { count: titulairesPresents },
+  ] = await Promise.all([
       supabase
         .from("enfants_sante")
         .select("besoins_particuliers, amenagements, suivis_exterieurs")
@@ -73,6 +79,15 @@ export default async function PageEnfant({
         .eq("profil_id", utilisateur.id)
         .is("retire_le", null)
         .maybeSingle(),
+      // Combien de titulaires ont effectivement rejoint le dossier. Sert à dire
+      // pourquoi la fiche est vide : ce n'est pas un oubli du référent, c'est
+      // que les personnes qui détiennent ces informations ne sont pas là.
+      supabase
+        .from("intervenants_enfant")
+        .select("id", { count: "exact", head: true })
+        .eq("enfant_id", id)
+        .eq("role", "parent")
+        .is("retire_le", null),
     ]);
 
   // On décide d'après le rôle, pas d'après la présence de la ligne : une fiche
@@ -87,6 +102,10 @@ export default async function PageEnfant({
   // de régler cette question.
   const etatsConsentement = accesSante ? await etatDesConsentements(id) : [];
   const utilisable = dossierUtilisable(etatsConsentement);
+
+  const attendus = enfant.titulaires_autorite_parentale ?? 2;
+  const presents = titulairesPresents ?? 0;
+  const manqueTitulaire = presents < attendus;
 
   return (
     <div className="space-y-8">
@@ -114,6 +133,24 @@ export default async function PageEnfant({
         </nav>
       </div>
 
+      {/* Ce qui vient en premier dans le temps vient en premier à l'écran. Tant
+          qu'aucun titulaire n'a rejoint le dossier, la fiche ne peut pas se
+          remplir : la date de naissance, le mode de communication, les centres
+          d'intérêt et les aménagements sont à la famille, pas au référent. */}
+      {manqueTitulaire ? (
+        <p className="rounded-md border border-accent bg-surface px-4 py-3 text-sm">
+          {presents === 0
+            ? "Aucun titulaire de l’autorité parentale n’a encore rejoint ce dossier."
+            : `${presents} titulaire sur ${attendus} a rejoint ce dossier.`}{" "}
+          Invitez la famille avant de remplir la fiche : la date de naissance, le mode
+          de communication, les centres d’intérêt et les aménagements viennent d’elle.{" "}
+          <Link href={`/enfants/${id}/equipe`} className="font-medium text-accent underline">
+            Inviter les titulaires
+          </Link>
+          .
+        </p>
+      ) : null}
+
       {/* L'avertissement porte sur ce qui bloque, pas sur ce qui manque en
           général : tant que les autorisations nécessaires ne sont pas signées
           par tous les titulaires, l'équipe ne voit rien et l'IA ne produit
@@ -132,7 +169,7 @@ export default async function PageEnfant({
 
       <Section
         titre="Fiche"
-        aide="Les informations qui situent l'enfant. Elles sont visibles par toute l'équipe rattachée au dossier."
+        aide="Les informations qui situent l'enfant. Elles se renseignent avec la famille — le référent ne les devine pas. Visibles par toute l'équipe rattachée au dossier."
       >
         <FicheEnfantForm
           enfantId={enfant.id}

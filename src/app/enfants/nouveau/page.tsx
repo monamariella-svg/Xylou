@@ -3,13 +3,7 @@
 import { useActionState } from "react";
 import { creerUnEnfant, type EtatFormulaire } from "../actions";
 import { BoutonSoumettre, Champ, MessageErreur, classesChamp } from "@/components/ui";
-import {
-  AIDE_COMMUNICATION,
-  LIBELLE_CLASSE,
-  LIBELLE_COMMUNICATION,
-  NIVEAUX_CLASSE,
-  PROFILS_COMMUNICATION,
-} from "@/lib/domaine";
+import { LIBELLE_CLASSE, NIVEAUX_CLASSE } from "@/lib/domaine";
 const ETAT_INITIAL: EtatFormulaire = {};
 
 export default function PageNouvelEnfant() {
@@ -19,9 +13,11 @@ export default function PageNouvelEnfant() {
     <div className="mx-auto max-w-xl">
       <h1 className="text-2xl font-semibold">Ouvrir un dossier</h1>
       <p className="mt-2 text-sm text-texte-doux">
-        Le strict nécessaire pour commencer. Vous inviterez ensuite la famille, qui
-        signera les autorisations — rien ne fonctionne avant. Les centres
-        d&apos;intérêt, le projet moteur et les aménagements viennent après.
+        Uniquement ce que vous savez sans la famille : de quel enfant il s&apos;agit,
+        dans quelle classe, et combien de personnes détiennent l&apos;autorité
+        parentale. Vous inviterez les titulaires à l&apos;étape suivante, et la fiche
+        se remplira avec eux — date de naissance, mode de communication, centres
+        d&apos;intérêt, aménagements. Rien de tout cela ne se devine.
       </p>
 
       <form action={action} className="mt-6 space-y-5">
@@ -40,50 +36,16 @@ export default function PageNouvelEnfant() {
           </Champ>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Champ label="Classe">
-            <select name="classe" defaultValue="" className={classesChamp}>
-              <option value="">Non renseignée</option>
-              {NIVEAUX_CLASSE.map((niveau) => (
-                <option key={niveau} value={niveau}>
-                  {LIBELLE_CLASSE[niveau]}
-                </option>
-              ))}
-            </select>
-          </Champ>
-
-          <Champ label="Date de naissance" aide="Facultatif.">
-            <input name="dateNaissance" type="date" className={classesChamp} />
-          </Champ>
-        </div>
-
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">Communication</legend>
-          <div className="space-y-2">
-            {PROFILS_COMMUNICATION.map((profil, index) => (
-              <label
-                key={profil}
-                className="flex gap-3 rounded-md border border-bordure bg-surface p-3"
-              >
-                <input
-                  type="radio"
-                  name="communication"
-                  value={profil}
-                  defaultChecked={index === 0}
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block text-sm font-medium">
-                    {LIBELLE_COMMUNICATION[profil]}
-                  </span>
-                  <span className="block text-xs text-texte-doux">
-                    {AIDE_COMMUNICATION[profil]}
-                  </span>
-                </span>
-              </label>
+        <Champ label="Classe">
+          <select name="classe" defaultValue="" className={classesChamp}>
+            <option value="">Non renseignée</option>
+            {NIVEAUX_CLASSE.map((niveau) => (
+              <option key={niveau} value={niveau}>
+                {LIBELLE_CLASSE[niveau]}
+              </option>
             ))}
-          </div>
-        </fieldset>
+          </select>
+        </Champ>
 
         {/* La composition parentale, établie par le référent. Elle détermine
             combien de signatures il faudra pour valider un objectif, autoriser
@@ -109,7 +71,7 @@ export default function PageNouvelEnfant() {
           </div>
         </fieldset>
 
-        <BoutonSoumettre>Ouvrir le dossier</BoutonSoumettre>
+        <BoutonSoumettre>Ouvrir le dossier et inviter la famille</BoutonSoumettre>
       </form>
     </div>
   );

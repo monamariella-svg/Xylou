@@ -25,8 +25,12 @@ export function FormulaireSignature({
         >
           <div className="mb-2 flex flex-wrap items-baseline gap-2">
             <h2 className="text-base font-semibold">{texte.titre}</h2>
+            {/* Plus de mention « facultatif » : depuis 0066, les quatre textes
+                conditionnent le fonctionnement de l'outil. Laisser l'étiquette
+                pour le cas contraire, c'est afficher une possibilité que la
+                base refuse ensuite. */}
             <span className="text-xs text-texte-doux">
-              {texte.obligatoire ? "Nécessaire au fonctionnement" : "Facultatif"}
+              {texte.obligatoire ? "Nécessaire au fonctionnement" : "Sans effet sur l’accès"}
             </span>
           </div>
 

@@ -15,7 +15,7 @@ export default async function PageConsentements({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await exigerUtilisateur();
+  const { supabase, utilisateur } = await exigerUtilisateur();
 
   const { data: enfant } = await supabase
     .from("enfants")
@@ -28,10 +28,22 @@ export default async function PageConsentements({
   // dossier existe à cet identifiant.
   if (!enfant) notFound();
 
-  const [aSigner, etats] = await Promise.all([
+  // Le rôle décide de ce qu'on affiche. La fonction signer_les_consentements
+  // refuse déjà quiconque n'est pas titulaire (migration 0066) : ce test ne
+  // protège rien, il évite de présenter un formulaire qui échouerait ensuite.
+  const [aSigner, etats, { data: role }] = await Promise.all([
     textesASigner(id),
     etatDesConsentements(id),
+    supabase
+      .from("intervenants_enfant")
+      .select("role")
+      .eq("enfant_id", id)
+      .eq("profil_id", utilisateur.id)
+      .is("retire_le", null)
+      .maybeSingle(),
   ]);
+
+  const estTitulaire = role?.role === "parent";
 
   const utilisable = dossierUtilisable(etats);
 
@@ -44,8 +56,9 @@ export default async function PageConsentements({
         <h1 className="text-2xl font-semibold">Autorisations</h1>
         <p className="max-w-prose text-sm text-texte-doux">
           Ces textes disent ce que Xylou fait des informations de {enfant.prenom}, et ce
-          qu’il n’en fait pas. Chaque titulaire de l’autorité parentale signe pour
-          lui-même.
+          qu’il n’en fait pas. Ils se signent par les titulaires de l’autorité
+          parentale, chacun pour lui-même — par personne d’autre, et les quatre sont
+          nécessaires au fonctionnement de l’outil.
         </p>
       </header>
 
@@ -60,7 +73,17 @@ export default async function PageConsentements({
         </p>
       ) : null}
 
-      {aSigner.length > 0 ? (
+      {/* Un référent qui ouvre cette page vient y lire où en est le dossier —
+          c'est son travail de savoir pourquoi l'équipe ne voit rien. Lui
+          présenter le formulaire l'inviterait à signer à la place de la
+          famille, et une autorisation signée par le référent ne vaut rien. */}
+      {!estTitulaire ? (
+        <p className="rounded-md border border-bordure bg-surface px-4 py-3 text-sm text-texte-doux">
+          Vous n’avez rien à signer ici : ces autorisations appartiennent aux
+          titulaires de l’autorité parentale. Vous voyez ci-dessous où en est chacune
+          d’elles, et qui reste attendu.
+        </p>
+      ) : aSigner.length > 0 ? (
         <FormulaireSignature enfantId={id} textes={aSigner} />
       ) : (
         <p className="rounded-md border border-accent bg-accent-doux px-4 py-3 text-sm text-accent">
@@ -88,7 +111,7 @@ export default async function PageConsentements({
                 {etat.signatures} signature{etat.signatures > 1 ? "s" : ""} sur{" "}
                 {etat.titulaires_attendus} titulaire
                 {etat.titulaires_attendus > 1 ? "s" : ""}
-                {etat.obligatoire ? " · nécessaire" : " · facultative"}
+                {" · nécessaire au fonctionnement"}
               </p>
 
               {/* Nommer qui manque évite la question « pourquoi ça ne marche
