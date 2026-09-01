@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { exigerUtilisateur } from "@/lib/session";
 import { nomAffiche } from "@/lib/domaine";
 import { FormulaireInvitation } from "./FormulaireInvitation";
-import { retirerDuDossier } from "./actions";
+import { LigneIntervenant, type Intervenant } from "./LigneIntervenant";
 import { LigneInvitation } from "./LigneInvitation";
 
 const LIBELLE_ROLE: Record<string, string> = {
@@ -38,7 +38,7 @@ export default async function PageEquipe({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await exigerUtilisateur();
+  const { supabase, utilisateur } = await exigerUtilisateur();
 
   const { data: enfant } = await supabase
     .from("enfants")
@@ -53,7 +53,7 @@ export default async function PageEquipe({
       supabase.rpc("peut_composer_l_equipe", { p_enfant: id }),
       supabase
         .from("intervenants_enfant")
-        .select("id, profil_id, role, fonction, principal, toutes_matieres, profils(prenom, nom, email)")
+        .select("id, profil_id, role, fonction, principal, toutes_matieres, cree_le, profils(prenom, nom, email)")
         .eq("enfant_id", id)
         .is("retire_le", null)
         .order("role"),
@@ -101,47 +101,20 @@ export default async function PageEquipe({
           {(intervenants ?? []).map((i) => {
             const profil = premierProfil(i.profils);
             return (
-              <li
+              <LigneIntervenant
                 key={i.id}
-                className="rounded-lg border border-bordure bg-surface p-4 text-sm"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-medium">{nommer(profil)}</span>
-                  <span className="text-xs text-texte-doux">
-                    {LIBELLE_ROLE[i.role] ?? i.role}
-                    {i.role === "referent" && i.principal ? " · principal" : ""}
-                    {i.role === "referent" && !i.principal ? " · suppléant" : ""}
-                    {i.role === "enseignant" && i.toutes_matieres ? " · toutes matières" : ""}
-                  </span>
-                </div>
-
-                {i.fonction ? (
-                  <p className="mt-1 text-xs text-texte-doux">{i.fonction}</p>
-                ) : null}
-
-                {/* Un titulaire de l'autorité parentale ne se retire pas d'ici :
-                    la fonction de 0033 le refuse, et le proposer laisserait
-                    croire l'inverse. Depuis 0062, le retrait revient au
-                    référent — proposer le bouton à un parent produirait un
-                    refus au clic. */}
-                {i.role !== "parent" && peutComposer ? (
-                  <form action={retirerDuDossier} className="mt-3 flex flex-wrap gap-2">
-                    <input type="hidden" name="enfantId" value={id} />
-                    <input type="hidden" name="profilId" value={i.profil_id} />
-                    <input
-                      name="motif"
-                      placeholder="Motif du retrait"
-                      className="flex-1 rounded-md border border-bordure bg-fond px-2 py-1 text-xs"
-                    />
-                    <button
-                      type="submit"
-                      className="rounded-md border border-bordure px-3 py-1 text-xs hover:border-alerte hover:text-alerte"
-                    >
-                      Retirer
-                    </button>
-                  </form>
-                ) : null}
-              </li>
+                enfantId={id}
+                peutComposer={!!peutComposer}
+                estSoiMeme={i.profil_id === utilisateur.id}
+                intervenant={
+                  {
+                    ...i,
+                    prenom: profil?.prenom ?? null,
+                    nom: profil?.nom ?? null,
+                    email: profil?.email ?? null,
+                  } as Intervenant
+                }
+              />
             );
           })}
         </ul>
