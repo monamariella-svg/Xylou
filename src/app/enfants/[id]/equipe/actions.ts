@@ -82,6 +82,90 @@ export async function inviter(
   };
 }
 
+/**
+ * Corriger l'adresse d'une invitation en attente.
+ *
+ * On n'écrit pas la nouvelle adresse sur la ligne existante. Le premier lien
+ * est parti quelque part — dans la mauvaise boîte, justement — et modifier
+ * l'adresse enregistrée sans toucher au jeton laisserait ce lien-là valable :
+ * la personne qui l'a reçu par erreur entrerait dans le dossier, et l'écran
+ * afficherait la bonne adresse pendant ce temps.
+ *
+ * L'ancienne invitation est donc annulée et une nouvelle émise, avec le même
+ * rôle et les mêmes matières pour ne rien faire ressaisir. Le jeton précédent
+ * meurt avec elle.
+ */
+export async function corrigerAdresse(
+  _etatPrecedent: EtatInvitation,
+  formData: FormData,
+): Promise<EtatInvitation> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { erreur: "Session expirée. Reconnectez-vous." };
+
+  const id = String(formData.get("id") ?? "");
+  const enfantId = String(formData.get("enfantId") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!id || !enfantId || !email) return { erreur: "Indiquez la nouvelle adresse." };
+
+  const { data: ancienne } = await supabase
+    .from("invitations")
+    .select("email, role, fonction, matieres, toutes_matieres, acceptee_le, annulee_le")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!ancienne) return { erreur: "Invitation introuvable." };
+
+  // Une invitation acceptée ne se corrige plus : la personne a un compte, et
+  // son adresse lui appartient. La rediriger d'ici reviendrait à déplacer
+  // l'accès de quelqu'un sans qu'il le sache.
+  if (ancienne.acceptee_le) {
+    return {
+      erreur:
+        "Cette invitation a déjà été acceptée. L'adresse est désormais celle d'un compte, et seule la personne concernée peut la modifier.",
+    };
+  }
+  if (ancienne.annulee_le) return { erreur: "Cette invitation est déjà annulée." };
+  if (ancienne.email === email) return { erreur: "C'est déjà l'adresse enregistrée." };
+
+  const { data, error } = await supabase
+    .from("invitations")
+    .insert({
+      enfant_id: enfantId,
+      email,
+      role: ancienne.role,
+      fonction: ancienne.fonction ?? "",
+      matieres: ancienne.matieres ?? [],
+      toutes_matieres: ancienne.toutes_matieres ?? false,
+      invite_par: auth.user.id,
+    })
+    .select("jeton")
+    .single();
+
+  if (error || !data) {
+    return { erreur: "La nouvelle invitation n'a pas pu être créée. Vérifiez l'adresse." };
+  }
+
+  // Après, pas avant : si l'insertion échoue, l'invitation d'origine reste
+  // debout et le lien déjà transmis continue de fonctionner. L'ordre inverse
+  // laisserait le dossier sans aucune invitation valable.
+  await supabase
+    .from("invitations")
+    .update({ annulee_le: new Date().toISOString() })
+    .eq("id", id);
+
+  const entetes = await headers();
+  const hote = entetes.get("x-forwarded-host") ?? entetes.get("host") ?? "";
+  const protocole = entetes.get("x-forwarded-proto") ?? "https";
+
+  revalidatePath(`/enfants/${enfantId}/equipe`);
+
+  return {
+    succes: `Invitation réémise pour ${email}. L'ancien lien ne fonctionne plus.`,
+    lien: `${protocole}://${hote}/invitation/${data.jeton}`,
+  };
+}
+
 export async function annulerInvitation(formData: FormData) {
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");

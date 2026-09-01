@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { exigerUtilisateur } from "@/lib/session";
 import { nomAffiche } from "@/lib/domaine";
 import { FormulaireInvitation } from "./FormulaireInvitation";
-import { annulerInvitation, retirerDuDossier } from "./actions";
+import { retirerDuDossier } from "./actions";
+import { LigneInvitation } from "./LigneInvitation";
 
 const LIBELLE_ROLE: Record<string, string> = {
   parent: "Titulaire de l’autorité parentale",
@@ -151,27 +152,7 @@ export default async function PageEquipe({
           <h2 className="text-lg font-semibold">Invitations en attente</h2>
           <ul className="space-y-2">
             {(invitations ?? []).map((inv) => (
-              <li
-                key={inv.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-bordure bg-surface p-4 text-sm"
-              >
-                <span>
-                  <span className="font-medium">{inv.email}</span>
-                  <span className="ml-2 text-xs text-texte-doux">
-                    {LIBELLE_ROLE[inv.role] ?? inv.role}
-                  </span>
-                </span>
-                <form action={annulerInvitation}>
-                  <input type="hidden" name="id" value={inv.id} />
-                  <input type="hidden" name="enfantId" value={id} />
-                  <button
-                    type="submit"
-                    className="rounded-md border border-bordure px-3 py-1 text-xs hover:border-alerte hover:text-alerte"
-                  >
-                    Annuler
-                  </button>
-                </form>
-              </li>
+              <LigneInvitation key={inv.id} enfantId={id} invitation={inv} />
             ))}
           </ul>
         </section>
