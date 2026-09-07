@@ -431,10 +431,16 @@ restent dans l'application. Ce sont donc, par construction, les notifications
 **les plus substantielles** qui partent en clair.
 
 *Provisoire dans le schéma* : `preferences_notification` (0059) permet de couper
-type par type, `types_notifies_hors_application()` (0067) dit lesquels sortent,
-et le courriel porte un en-tête `List-Unsubscribe` vers l'écran de préférences.
-Le désabonnement **en un clic** sans session — jeton signé par destinataire —
-n'est pas fait : il le sera lorsque l'invitation partira par courriel (9.3).
+type par type, et `types_notifies_hors_application()` (0067) dit lesquels
+sortent.
+
+*Fait, et non plus à faire* : chaque courriel porte un désabonnement qui ne
+suppose aucun compte — lien signé dans le pied de page, en-tête
+`List-Unsubscribe-Post` pour le bouton des messageries (RFC 8058). Le jeton
+signe l'identifiant de profil, n'expire pas, n'ouvre aucune session et ne
+permet qu'une chose : couper les courriels. Les questions 9.1 à 9.3 restent
+posées, mais elles ne conditionnent plus l'envoi d'une invitation : la voie de
+retrait existe désormais pour qui n'a pas de compte.
 
 ---
 

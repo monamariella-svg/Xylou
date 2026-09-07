@@ -86,6 +86,12 @@ Les envois qui échouent restent visibles dans `/administration`, ce qui est le
 seul endroit où l'on s'aperçoit qu'une clé a expiré avant qu'une famille le
 signale.
 
+Chaque courriel porte un désabonnement qui ne suppose aucun compte : un lien
+signé dans le pied de page, et l'en-tête `List-Unsubscribe-Post` pour le bouton
+que les messageries affichent d'elles-mêmes. C'est ce qui permettra d'écrire un
+jour à quelqu'un qui n'a pas encore de compte — l'invitation d'un enseignant,
+notamment. La route refuse de partir si `XYLOU_SECRET_DESABONNEMENT` manque.
+
 ## Architecture
 
 ```
@@ -117,16 +123,6 @@ Le MVP décrit au §3.5 comporte six briques. Deux sont posées :
 Le schéma de base de données couvre les six : les tables des briques restantes
 existent déjà, avec leurs politiques RLS. Ce qui manque est l'interface et les
 appels au modèle.
-
-> **Condition avant de faire partir une invitation par courriel.** Toutes les
-> notifications sortantes vont aujourd'hui à des titulaires de compte, et c'est
-> ce qui rend acceptable que le désabonnement passe par un écran derrière une
-> session. Une invitation romprait cela : son destinataire n'a pas encore de
-> compte, donc aucun accès à cet écran, et son seul recours pour ne plus rien
-> recevoir serait de nous signaler comme indésirable. Il faut donc poser
-> d'abord un désabonnement sans session — jeton signé par destinataire, servant
-> le lien du pied de page et l'en-tête `List-Unsubscribe-Post`. Une demi-journée,
-> sans migration. Voir `docs/questions-juriste.md` §9.
 
 Reporté en v2, conformément au §3.5 : planning partagé, profils de
 professionnels extérieurs, espaces de commentaires.

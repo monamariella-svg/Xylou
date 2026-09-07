@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { jetonDesabonnement, secretDesabonnementConfigure } from "@/lib/desabonnement";
 
 /**
  * Vide la file d'envoi de la migration 0059.
@@ -35,8 +36,14 @@ const LOT = 50;
 // destinataire qui doit pouvoir arrêter un courriel, pas nous.
 const CHEMIN_PREFERENCES = "/notifications/preferences";
 
+// Et l'arrêt complet, lui, ne suppose aucune session : c'est ce qui permettra
+// d'écrire à quelqu'un qui n'a pas encore de compte.
+const CHEMIN_DESABONNEMENT = "/desabonnement";
+const CHEMIN_DESABONNEMENT_UN_CLIC = "/api/desabonnement";
+
 type Envoi = {
   id: string;
+  destinataire_id: string;
   canal: string;
   adresse: string;
   sujet: string;
@@ -56,7 +63,7 @@ function autorise(request: Request): boolean {
   return entete === `Bearer ${attendu}`;
 }
 
-function corpsHtml(envoi: Envoi, base: string): string {
+function corpsHtml(envoi: Envoi, base: string, jeton: string): string {
   const lien = envoi.lien
     ? `<p style="margin:24px 0"><a href="${base}${envoi.lien}" style="background:#1B6C78;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">Ouvrir dans Xylou</a></p>`
     : "";
@@ -67,7 +74,9 @@ ${envoi.corps ? `<p style="margin:0">${echapper(envoi.corps)}</p>` : ""}
 ${lien}
 <p style="font-size:13px;color:#5E6B78;margin-top:28px;border-top:1px solid #DFE5EB;padding-top:12px">
 Vous recevez ce message parce que vous accompagnez un enfant suivi dans Xylou.
-<a href="${base}${CHEMIN_PREFERENCES}" style="color:#5E6B78">Choisir ce qui vous est notifié</a>.</p>
+<a href="${base}${CHEMIN_PREFERENCES}" style="color:#5E6B78">Choisir ce qui vous est notifié</a>
+&nbsp;·&nbsp;
+<a href="${base}${CHEMIN_DESABONNEMENT}?jeton=${jeton}" style="color:#5E6B78">Ne plus rien recevoir</a>.</p>
 </div>`;
 }
 
@@ -92,11 +101,16 @@ async function viderLaFile(request: Request) {
   // aucun n'est cliquable : un courriel envoyé ne se rattrape pas.
   const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
 
-  if (!cleResend || !expediteur || !base) {
+  // Le secret de désabonnement est au même rang que les autres : sans lui, les
+  // liens du pied de page ne se signent pas, et le courriel partirait en
+  // promettant un arrêt qu'il ne permet pas. Voir AGENTS.md, « Aucun courriel
+  // vers quelqu'un qui n'a pas de compte ».
+  if (!cleResend || !expediteur || !base || !secretDesabonnementConfigure()) {
     return Response.json(
       {
         erreur:
-          "RESEND_API_KEY, RESEND_FROM et NEXT_PUBLIC_SITE_URL sont nécessaires.",
+          "RESEND_API_KEY, RESEND_FROM, NEXT_PUBLIC_SITE_URL et " +
+          "XYLOU_SECRET_DESABONNEMENT sont nécessaires.",
       },
       { status: 500 },
     );
@@ -127,6 +141,8 @@ async function viderLaFile(request: Request) {
 
   for (const envoi of envois) {
     try {
+      const jeton = jetonDesabonnement(envoi.destinataire_id);
+
       const reponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -137,17 +153,18 @@ async function viderLaFile(request: Request) {
           from: expediteur,
           to: [envoi.adresse],
           subject: envoi.sujet,
-          html: corpsHtml(envoi, base),
+          html: corpsHtml(envoi, base, jeton),
           headers: {
-            // Le bouton « se désabonner » des messageries. Sans lui, quelqu'un
-            // qui ne veut plus de ces courriels n'a qu'un geste à sa portée :
-            // les signaler comme indésirables — ce qui abîme la réputation du
-            // domaine, et finit par empêcher les alertes d'arriver aux autres.
-            //
-            // Variante par URL seulement : le désabonnement en un clic suppose
-            // un point d'entrée sans session, donc un jeton signé par
-            // destinataire, qui n'existe pas encore.
-            "List-Unsubscribe": `<${base}${CHEMIN_PREFERENCES}>`,
+            // Le bouton « se désabonner » que la messagerie affiche elle-même.
+            // Sans lui, qui ne veut plus de ces courriels n'a qu'un geste à sa
+            // portée : les signaler comme indésirables — ce qui abîme la
+            // réputation du domaine, et finit par empêcher les alertes
+            // d'arriver aux autres familles.
+            "List-Unsubscribe": `<${base}${CHEMIN_DESABONNEMENT_UN_CLIC}?jeton=${jeton}>`,
+            // RFC 8058 : la messagerie appelle l'adresse ci-dessus en POST, et
+            // rien ne s'ouvre pour le destinataire. Les deux en-têtes vont
+            // ensemble — celui-ci seul ne veut rien dire.
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
           },
         }),
       });
