@@ -7,7 +7,35 @@ import { createClient } from "@/lib/supabase/server";
 export type EtatInvitation = {
   erreur?: string;
   succes?: string;
-  /** Le lien à transmettre, faute de service d'envoi. */
+  /**
+   * Le lien, rendu au référent pour qu'il le transmette lui-même.
+   *
+   * Le service d'envoi existe désormais (0059, puis 0068 pour la promptitude) :
+   * rien n'empêcherait techniquement d'expédier l'invitation d'ici. Ce qui
+   * l'empêche est ailleurs.
+   *
+   * ------------------------------------------------------------------------
+   * À LIRE AVANT DE FAIRE PARTIR CETTE INVITATION PAR COURRIEL
+   *
+   * Toutes les notifications sortantes vont aujourd'hui à des titulaires de
+   * compte : la table `notifications` n'a de destinataire que parmi les
+   * profils. C'est ce qui rend acceptable que le désabonnement passe par un
+   * écran derrière une session — chacun peut l'atteindre.
+   *
+   * Une invitation romprait cela. Son destinataire n'a, par définition, pas
+   * encore de compte : l'écran de préférences lui est inaccessible, et le seul
+   * geste à sa portée pour ne plus rien recevoir serait de nous signaler comme
+   * indésirable — ce qui abîme la réputation du domaine et finit par empêcher
+   * les alertes de blocage d'arriver aux autres familles.
+   *
+   * Ce qu'il faut poser d'abord : un désabonnement sans session, par jeton
+   * signé par destinataire, servant à la fois le lien du pied de page et
+   * l'en-tête `List-Unsubscribe-Post` (un clic). Une demi-journée, sans
+   * migration — un HMAC de l'identifiant de profil suffit.
+   *
+   * Voir docs/questions-juriste.md §9.3.
+   * ------------------------------------------------------------------------
+   */
   lien?: string;
 };
 
