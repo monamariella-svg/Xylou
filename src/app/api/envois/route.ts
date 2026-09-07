@@ -104,16 +104,18 @@ async function viderLaFile(request: Request) {
 
   const supabase = createServiceClient();
 
-  // On reprend aussi les échecs récupérables : un envoi raté une fois doit
-  // repartir au passage suivant, sinon la file se remplit d'attentes que rien
-  // ne relance.
-  const { data, error } = await supabase
-    .from("envois")
-    .select("id, canal, adresse, sujet, corps, lien, tentatives")
-    .eq("canal", "courriel")
-    .or(`statut.eq.a_envoyer,and(statut.eq.echec,tentatives.lt.${TENTATIVES_MAX})`)
-    .order("cree_le", { ascending: true })
-    .limit(LOT);
+  // Réserver, et non lire : depuis 0068, trois déclencheurs peuvent appeler
+  // cette route — la sonnette à l'insertion, pg_cron, la tâche quotidienne. Un
+  // simple SELECT laisserait deux passages simultanés expédier le même
+  // courriel. `reserver_envois()` marque les lignes et les rend d'un seul
+  // geste ; deux passages qui se recouvrent se partagent alors le travail.
+  //
+  // Les seuils restent ici et voyagent en paramètres : la règle « cinq
+  // tentatives » appartient à ce fichier, pas à la base.
+  const { data, error } = await supabase.rpc("reserver_envois", {
+    p_lot: LOT,
+    p_tentatives_max: TENTATIVES_MAX,
+  });
 
   if (error) {
     return Response.json({ erreur: error.message }, { status: 500 });

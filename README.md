@@ -52,11 +52,29 @@ habilitation traitée — et un trigger la met en file (`envois`). Rien ne sort
 tant que la file n'est pas vidée : `POST` ou `GET /api/envois` s'en charge,
 protégé par `CRON_SECRET`.
 
-En production, `vercel.json` l'appelle toutes les quinze minutes. **Le plan
-Hobby de Vercel ne déclenche les tâches planifiées qu'une fois par jour** : le
-cadencement de `vercel.json` n'est réellement appliqué qu'à partir du plan Pro.
-Une fois par jour suffit à ne rien perdre, mais pas à prévenir à temps d'un
-blocage répété — à vérifier avant le pilote.
+Trois déclencheurs la vident, du plus rapide au plus sûr (migration `0068`) :
+
+| Déclencheur | Délai | Rôle |
+| --- | --- | --- |
+| Sonnette `pg_net` sur `envois` | quelques secondes | le cas normal |
+| `pg_cron`, toutes les 5 min | 5 min | rattrape les échecs et ce que la sonnette a perdu |
+| Tâche Vercel, quotidienne | 24 h | dernier filet si les extensions sont tombées |
+
+Le plan Hobby de Vercel ne déclenche de toute façon qu'une fois par jour : c'est
+pourquoi `vercel.json` n'est plus la cadence principale mais le filet extérieur.
+
+**Trois choses à faire une fois, côté Supabase**, sans quoi seul le filet
+quotidien fonctionne :
+
+1. activer `pg_net` et `pg_cron` (Database &rsaquo; Extensions) ;
+2. créer deux secrets dans Vault — `xylou_url_envois` (l'adresse complète de
+   `/api/envois`) et `xylou_cron_secret` (la même valeur que `CRON_SECRET`) ;
+3. planifier le balayage : la commande `cron.schedule` est donnée en fin de
+   migration `0068`, à copier telle quelle.
+
+Un envoi n'est jamais expédié deux fois même si les trois déclencheurs se
+recouvrent : `reserver_envois()` réserve les lignes avant l'appel à Resend, et
+deux passages simultanés se partagent le travail au lieu de le refaire.
 
 En local, sans tâche planifiée :
 
