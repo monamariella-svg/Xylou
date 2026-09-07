@@ -30,6 +30,11 @@ const TENTATIVES_MAX = 5;
 // dure pas plus longtemps que la limite d'exécution d'une fonction serverless.
 const LOT = 50;
 
+// Le pied de page annonçait qu'on peut choisir ce qu'on reçoit sans dire où.
+// Une promesse sans lien est une promesse qu'on ne tient pas : c'est le
+// destinataire qui doit pouvoir arrêter un courriel, pas nous.
+const CHEMIN_PREFERENCES = "/notifications/preferences";
+
 type Envoi = {
   id: string;
   canal: string;
@@ -62,7 +67,7 @@ ${envoi.corps ? `<p style="margin:0">${echapper(envoi.corps)}</p>` : ""}
 ${lien}
 <p style="font-size:13px;color:#5E6B78;margin-top:28px;border-top:1px solid #DFE5EB;padding-top:12px">
 Vous recevez ce message parce que vous accompagnez un enfant suivi dans Xylou.
-Vous pouvez choisir ce qui vous est notifié depuis votre compte.</p>
+<a href="${base}${CHEMIN_PREFERENCES}" style="color:#5E6B78">Choisir ce qui vous est notifié</a>.</p>
 </div>`;
 }
 
@@ -131,6 +136,17 @@ async function viderLaFile(request: Request) {
           to: [envoi.adresse],
           subject: envoi.sujet,
           html: corpsHtml(envoi, base),
+          headers: {
+            // Le bouton « se désabonner » des messageries. Sans lui, quelqu'un
+            // qui ne veut plus de ces courriels n'a qu'un geste à sa portée :
+            // les signaler comme indésirables — ce qui abîme la réputation du
+            // domaine, et finit par empêcher les alertes d'arriver aux autres.
+            //
+            // Variante par URL seulement : le désabonnement en un clic suppose
+            // un point d'entrée sans session, donc un jeton signé par
+            // destinataire, qui n'existe pas encore.
+            "List-Unsubscribe": `<${base}${CHEMIN_PREFERENCES}>`,
+          },
         }),
       });
 

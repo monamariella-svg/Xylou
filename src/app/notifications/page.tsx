@@ -95,7 +95,15 @@ export default async function PageNotifications() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-semibold">Notifications</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Notifications</h1>
+        <Link
+          href="/notifications/preferences"
+          className="text-sm text-texte-doux hover:text-accent hover:underline"
+        >
+          Choisir ce que je reçois par courriel
+        </Link>
+      </div>
 
       {notifications.length === 0 ? (
         <div className="rounded-lg border border-dashed border-bordure bg-surface p-6">

@@ -126,3 +126,68 @@ export const LIBELLE_MAITRISE: Record<Maitrise, string> = {
   acquise: "Acquis",
   point_fort: "Point fort",
 };
+
+// Les types de notification de 0014, complétés par 0046 et 0054. L'ordre est
+// celui du type Postgres.
+export const TYPES_NOTIFICATION = [
+  "message",
+  "objectif_propose",
+  "objectif_modification_demandee",
+  "objectif_valide",
+  "mission_a_valider",
+  "examen_rendu",
+  "difficulte_repetee",
+  "bilan_pret",
+  "invitation",
+  "acces_exceptionnel",
+  "recompense_approche",
+  "recompense_atteinte",
+  "badge_obtenu",
+  "quete_reussie",
+  "habilitation_demandee",
+  "habilitation_traitee",
+] as const;
+export type TypeNotification = (typeof TYPES_NOTIFICATION)[number];
+
+export const LIBELLE_NOTIFICATION: Record<TypeNotification, string> = {
+  message: "Nouveau message",
+  objectif_propose: "Objectif proposé",
+  objectif_modification_demandee: "Modification demandée sur un objectif",
+  objectif_valide: "Objectif validé",
+  mission_a_valider: "Mission à valider",
+  examen_rendu: "Examen rendu",
+  difficulte_repetee: "Difficulté qui se répète",
+  bilan_pret: "Bilan prêt",
+  invitation: "Invitation à un dossier",
+  acces_exceptionnel: "Accès exceptionnel à un dossier",
+  recompense_approche: "Récompense bientôt atteinte",
+  recompense_atteinte: "Récompense atteinte",
+  badge_obtenu: "Badge obtenu",
+  quete_reussie: "Quête réussie",
+  habilitation_demandee: "Demande d'habilitation",
+  habilitation_traitee: "Réponse à une demande d'habilitation",
+};
+
+// Ce que chaque type prévient réellement. L'écran de préférences propose de
+// couper des courriels : sans dire ce qu'on coupe, on choisit au titre, et on
+// coupe une alerte de blocage en croyant couper une notification de confort.
+export const AIDE_NOTIFICATION: Record<TypeNotification, string> = {
+  message: "Quelqu'un vous écrit dans un fil d'échange du dossier.",
+  objectif_propose: "Un objectif attend votre avis avant d'être proposé à l'enfant.",
+  objectif_modification_demandee:
+    "Quelqu'un demande une modification sur un objectif que vous avez écrit.",
+  objectif_valide: "Un objectif que vous suiviez a été validé.",
+  mission_a_valider: "Une mission terminée attend d'être relue.",
+  examen_rendu: "Un examen a été rendu.",
+  difficulte_repetee:
+    "Le même point bloque plusieurs fois de suite. C'est l'alerte qui permet d'intervenir avant le découragement.",
+  bilan_pret: "Un bilan est prêt à être relu et validé.",
+  invitation: "Vous êtes invité à rejoindre un dossier.",
+  acces_exceptionnel: "Un accès exceptionnel a été ouvert sur un dossier que vous suivez.",
+  recompense_approche: "Une récompense familiale est bientôt atteinte.",
+  recompense_atteinte: "Une récompense familiale est atteinte.",
+  badge_obtenu: "L'enfant a obtenu un badge.",
+  quete_reussie: "Une quête a été menée jusqu'au bout.",
+  habilitation_demandee: "Une demande d'habilitation de référent attend d'être traitée.",
+  habilitation_traitee: "Votre demande d'habilitation a reçu une réponse.",
+};
