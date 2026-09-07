@@ -45,6 +45,29 @@ nouveau fichier numéroté.
 > remplacés par les repères Éduscol correspondants avant qu'un enfant passe un
 > bilan.
 
+## Envoyer les notifications
+
+Une notification naît en base — un objectif à valider, un message, une
+habilitation traitée — et un trigger la met en file (`envois`). Rien ne sort
+tant que la file n'est pas vidée : `POST` ou `GET /api/envois` s'en charge,
+protégé par `CRON_SECRET`.
+
+En production, `vercel.json` l'appelle toutes les quinze minutes. **Le plan
+Hobby de Vercel ne déclenche les tâches planifiées qu'une fois par jour** : le
+cadencement de `vercel.json` n'est réellement appliqué qu'à partir du plan Pro.
+Une fois par jour suffit à ne rien perdre, mais pas à prévenir à temps d'un
+blocage répété — à vérifier avant le pilote.
+
+En local, sans tâche planifiée :
+
+```bash
+curl -X POST localhost:3000/api/envois -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Les envois qui échouent restent visibles dans `/administration`, ce qui est le
+seul endroit où l'on s'aperçoit qu'une clé a expiré avant qu'une famille le
+signale.
+
 ## Architecture
 
 ```

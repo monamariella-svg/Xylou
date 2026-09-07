@@ -3,9 +3,9 @@ import { createServiceClient } from "@/lib/supabase/service";
 /**
  * Vide la file d'envoi de la migration 0059.
  *
- * Appelé par une tâche planifiée, ou à la main. Rien ne l'appelle depuis
- * l'interface : un envoi déclenché par une action utilisateur échouerait en
- * silence, ce que la file existe précisément pour éviter.
+ * Appelé par la tâche planifiée de `vercel.json`, ou à la main. Rien ne
+ * l'appelle depuis l'interface : un envoi déclenché par une action utilisateur
+ * échouerait en silence, ce que la file existe précisément pour éviter.
  *
  * ---------------------------------------------------------------------------
  * POURQUOI RESEND EN HTTP DIRECT, SANS DÉPENDANCE
@@ -14,6 +14,12 @@ import { createServiceClient } from "@/lib/supabase/service";
  * tenir à jour dans un projet qui en a déjà peu. L'API tient en une requête.
  * ---------------------------------------------------------------------------
  */
+
+// Un passage traite jusqu'à LOT courriels, séquentiellement. Le défaut de 10 s
+// d'une fonction Vercel les couperait au milieu — et un envoi coupé après
+// l'appel à Resend mais avant la mise à jour de la ligne repart au passage
+// suivant, c'est-à-dire arrive deux fois.
+export const maxDuration = 60;
 
 // Au-delà, on cesse de réessayer. Cinq tentatives couvrent une panne passagère ;
 // s'il en faut plus, c'est que la configuration est en cause, et réessayer
@@ -67,18 +73,26 @@ function echapper(texte: string): string {
     .replace(/>/g, "&gt;");
 }
 
-export async function POST(request: Request) {
+async function viderLaFile(request: Request) {
   if (!autorise(request)) {
     return new Response("Non autorisé", { status: 401 });
   }
 
   const cleResend = process.env.RESEND_API_KEY;
   const expediteur = process.env.RESEND_FROM;
-  const base = process.env.XYLOU_URL_PUBLIQUE ?? "";
 
-  if (!cleResend || !expediteur) {
+  // Les liens d'une notification sont des chemins applicatifs — « /enfants/…/
+  // echanges/… ». Sans origine devant, le bouton du courriel ne mène nulle
+  // part. On refuse de partir plutôt que d'expédier un lot de messages dont
+  // aucun n'est cliquable : un courriel envoyé ne se rattrape pas.
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
+
+  if (!cleResend || !expediteur || !base) {
     return Response.json(
-      { erreur: "RESEND_API_KEY et RESEND_FROM sont nécessaires." },
+      {
+        erreur:
+          "RESEND_API_KEY, RESEND_FROM et NEXT_PUBLIC_SITE_URL sont nécessaires.",
+      },
       { status: 500 },
     );
   }
@@ -160,3 +174,10 @@ export async function POST(request: Request) {
   // s'en apercevoir sans lire de journal.
   return Response.json({ traites: envois.length, envoyes, echoues });
 }
+
+// Vercel Cron n'appelle qu'en GET : n'exposer que POST rendait la tâche
+// planifiée impossible à brancher, et l'erreur serait passée pour une panne
+// d'envoi plutôt que pour un 405. Les deux verbes font la même chose — POST
+// reste le bon choix pour un appel à la main ou depuis un autre ordonnanceur.
+export const GET = viderLaFile;
+export const POST = viderLaFile;
