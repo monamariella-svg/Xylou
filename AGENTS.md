@@ -32,6 +32,18 @@ cas de Xylan (4e, profil autiste). Voir `docs/projet.md` pour le dossier complet
   Un contenu non validé ne doit jamais être présenté à l'enfant.
 - **Jamais de comparaison à une norme neurotypique** dans les libellés affichés.
   On mesure un niveau et une progression, on ne note pas un écart.
+- **Aucun courriel vers quelqu'un qui n'a pas de compte** tant qu'il n'existe pas
+  de désabonnement sans session. Toutes les notifications sortantes vont
+  aujourd'hui à des titulaires de compte — `notifications.destinataire_id`
+  référence `profils` — et c'est ce qui rend acceptable que le seul moyen de les
+  couper soit un écran derrière une session : chacun peut l'atteindre.
+  L'invitation d'un enseignant est le premier envoi qui romprait cela, puisque
+  son destinataire n'a par définition pas encore de compte. Son seul recours
+  serait alors de nous signaler comme indésirable, ce qui dégrade la
+  délivrabilité pour toutes les familles — y compris pour l'alerte de blocage.
+  **L'ordre n'est pas négociable :** le désabonnement par jeton signé
+  (pied de page et `List-Unsubscribe-Post`) précède le premier envoi
+  d'invitation, il ne le suit pas. Voir `docs/questions-juriste.md` §9.
 
 ## Stack
 
