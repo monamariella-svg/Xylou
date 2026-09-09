@@ -110,12 +110,43 @@ reste donc inactif, **en disant pourquoi**, tant que :
 
 - aucun **pré-bilan** n'a été rempli — sans lui, la génération produirait un
   bilan standard et mesurerait le handicap de l'enfant plutôt que ses savoirs ;
-- les **autorisations** ne sont pas signées, `generation_ia` en particulier ;
-- la **classe** n'est pas renseignée : elle décide des domaines évalués, et
-  ceux-ci diffèrent d'une classe à l'autre au sein d'un même cycle (0072).
+- les **autorisations** ne sont pas signées, `generation_ia` en particulier.
 
-Un bouton grisé sans explication produit un appel au référent. Le message doit
-dire ce qui manque et mener à l'écran qui le règle.
+Et c'est tout. Un bouton grisé sans explication produit un appel au référent :
+le message doit dire ce qui manque et mener à l'écran qui le règle.
+
+### La classe n'est pas un bloquant, et ne fixe pas le niveau de départ
+
+Deux usages de la classe se confondent facilement, et le second est nocif :
+
+- **quels domaines explorer.** La 4e évalue « étude de la langue »,
+  « compréhension de l'oral »… C'est une carte du territoire, et elle est utile.
+- **à quelle difficulté commencer.** Là, partir du niveau de la classe est une
+  faute : un enfant inscrit en 4e qui travaille le français au niveau CM1 se
+  planterait aux premières questions. C'est le découragement du §3.4, provoqué
+  par l'outil censé l'éviter.
+
+La classe donne donc, au plus, une carte par défaut — corrigeable. Elle ne
+conditionne pas la génération, et elle ne fixe jamais la difficulté.
+
+**D'où vient alors le niveau de départ ?** Pas du pré-bilan non plus : celui-ci
+dit *comment poser les questions*, pas ce que l'enfant sait, et rien de ce qu'il
+contient n'entre dans un résultat.
+
+Il vient du bilan lui-même : **on commence délibérément en dessous, et on
+monte.** C'est ce que font les tests de positionnement, et la vertu est précise
+ici — les premières questions sont des réussites. L'enfant commence par
+réussir, puis on monte jusqu'à ce que ça bloque. Là où l'on s'arrête est la
+mesure.
+
+Le schéma l'avait anticipé : `bilan_niveaux_matiere.niveau_estime` est distinct
+de `classe_reference`, et `0004` le dit déjà — *« Il peut être au-dessus comme
+en dessous de sa classe d'inscription, et les deux sont des informations
+utiles, pas des jugements. »*
+
+Quand un bilan de l'année précédente existe, il vaut mieux que n'importe quelle
+estimation : `annees_enfant.bilan_anterieur_id` (0034) est là pour ça, et
+`0034` pose déjà la règle — on ne recommence pas à zéro chaque rentrée.
 
 ### Plusieurs enfants à la fois
 
@@ -136,13 +167,44 @@ Et la même précaution qu'en `0068` s'appliquera : réserver avant de traiter.
 Deux passages simultanés sur la même demande, ce sont deux factures pour un
 seul bilan.
 
-### Ce qui protège déjà contre le double clic
+### Un seul bilan ouvert par enfant — ce que ça protège, et ce que ça n'empêche pas
 
 `bilans_positionnement` porte depuis `0004` un index unique
-`bilans_un_seul_en_cours` : un seul bilan ouvert par enfant. Deux clics
-successifs ne peuvent donc pas ouvrir deux bilans — la base refuse le second.
-C'était écrit pour éviter deux niveaux contradictoires ; ça protège aussi le
-budget.
+`bilans_un_seul_en_cours`. Deux clics successifs ne peuvent pas ouvrir deux
+bilans : la base refuse le second. Écrit pour éviter deux niveaux
+contradictoires, il protège aussi le budget.
+
+**Il n'empêche pas de recommencer.** Un enfant fatigué, un jour qui se passe
+mal : le bilan s'abandonne (`statut_bilan` a la valeur `abandonne` depuis 0004)
+et un nouveau s'ouvre.
+
+Mais recommencer est le second choix. Le pré-bilan demande déjà *« a besoin de
+pouvoir interrompre l'évaluation et la reprendre plus tard »* et *« des signes
+annoncent qu'il faut interrompre »* : **le bilan doit donc savoir se mettre en
+pause et reprendre**, et l'abandon ne sert qu'au cas où reprendre n'a plus de
+sens.
+
+> **Un bilan interrompu par la fatigue ne produit aucun niveau.**
+
+Si l'on gardait ses réponses partielles comme une mesure, on enregistrerait la
+fatigue comme de l'incompétence — exactement ce que tout ce travail combat. Les
+réponses restent au dossier pour comprendre ce qui s'est passé ; elles
+n'alimentent jamais un résultat. `bilan_reponses` porte `duree_secondes` et
+`aide_utilisee` : de quoi voir la fatigue arriver, pas de quoi la noter.
+
+### Plusieurs référents à la fois
+
+Une file n'est pas un guichet unique. `for update skip locked` — le mécanisme
+vérifié en `0068` — sert précisément à ce que plusieurs traitements avancent en
+parallèle sur des lignes différentes. Deux référents d'établissements
+différents ne se voient pas, ne s'attendent pas, ne se ralentissent pas.
+
+La seule chose sérialisée est **deux générations pour le même enfant**, et
+c'est voulu.
+
+La vraie limite à grande échelle est ailleurs : les quotas du fournisseur d'IA,
+partagés par toute l'application. Invisible à douze familles ; à deux cents,
+c'est un problème d'étalement et de priorités, pas d'architecture.
 
 ### Dire ce que ça coûte avant de cliquer
 
