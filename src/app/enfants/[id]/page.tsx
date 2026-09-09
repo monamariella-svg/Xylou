@@ -136,6 +136,12 @@ export default async function PageEnfant({
           >
             Pré-bilan
           </Link>
+          <Link
+            href={`/enfants/${id}/bilan`}
+            className="rounded-md border border-bordure px-3 py-1 hover:border-accent hover:text-accent"
+          >
+            Bilan
+          </Link>
         </nav>
       </div>
 

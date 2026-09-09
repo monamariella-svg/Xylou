@@ -246,8 +246,13 @@ contrainte `bilan_valide_a_un_validateur` l'impose en base.
   obligatoire.
 - La fusion des deux sources. Règle posée d'avance : une divergence entre
   diagnostic et observation **se signale, elle ne se lisse pas**.
-- La génération du bilan elle-même : le bouton, la file, la réservation. Les
-  repères officiels ne la bloquent plus pour la 4e (`0075` et `0076`).
+- La passation elle-même : l'écran où l'enfant répond, la pause et la reprise,
+  la correction. La génération produit les questions (`0077`) ; personne ne les
+  lui pose encore.
+- La montée en difficulté réelle. `0077` ordonne les repères par taux de
+  réussite national, ce qui est une approximation : la vraie progression
+  viendra des repères des classes inférieures, quand leurs documents seront
+  chargés. En attendant, c'est le modèle qui commence en dessous, sur consigne.
 - Les autres classes. La 4e est chargée parce que c'est celle de l'enfant à
   l'origine du projet. Les documents équivalents existent pour le CP à la 6e et
   pour la 2nde, se téléchargent librement et se chargeront de la même façon.
