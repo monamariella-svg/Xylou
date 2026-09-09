@@ -1,0 +1,20 @@
+
+Le schéma de Xylou, tel que les migrations le produisent.
+
+CE FICHIER NE FAIT PAS FOI. Les migrations numérotées le font. Celui-ci en est
+une photographie, régénérée par :
+
+  ./supabase/verification/executer.sh --schema
+
+Ne le modifiez jamais à la main : la prochaine régénération effacerait la
+correction, et la base réelle ne l'aurait jamais eue.
+
+CE QU'IL NE CONTIENT PAS
+
+Aucune donnée. Ni les 55 attendus officiels de mathématiques, ni les 45
+questions de l'évaluation nationale, ni le questionnaire du pré-bilan — tout
+cela vit dans les migrations 0070 et 0075 à 0076.
+
+Recréer une base à partir de ce seul fichier donnerait donc un schéma correct
+et un référentiel vide.
+
