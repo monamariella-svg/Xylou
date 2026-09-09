@@ -74,18 +74,39 @@ recommandations européennes avant qu'elles pilotent une génération réelle.*
 
 ## Contre quoi le bilan situe l'enfant
 
-Deux niveaux, et il ne faut pas les confondre.
+Trois niveaux, et il ne faut pas les confondre.
 
 **Les domaines évalués** — la structure officielle des évaluations nationales,
 classe par classe (migration 0072). « Étude de la langue », « Nombres et
 calculs », « Fluence ». Ils sont posés et utilisables.
 
 **Les repères de compétences** — les attendus vérifiables qui se rangent dans
-ces domaines : « accorder le verbe avec son sujet ». Ceux en base sont des
-formulations de travail (`source = 'amorce'`) et restent à écrire.
+ces domaines : « effectuer des calculs de durées et d'horaires ». Pour la 4e,
+ce sont les **attendus de fin de 5e**, officiels, chargés en `0075` :
+55 en mathématiques, 3 en français (`source = 'eduscol'`).
 
-Le bilan peut donc déjà se structurer correctement pendant que les attendus se
-remplissent.
+Les formulations de travail de `0003` (`source = 'amorce'`) restent en base,
+pour ne pas casser ce qui a déjà été écrit contre elles, mais la génération
+préfère `eduscol`.
+
+**Les questions publiées** — ce que l'évaluation nationale demande réellement,
+chargé en `0076` : 45 questions, chacune avec la tâche, la réponse attendue et
+l'analyse des erreurs observées. C'est le troisième niveau, et c'est lui qui
+rend une génération possible : un attendu dit ce qui doit être acquis, une
+question montre comment on le demande et quelles erreurs attendre.
+
+Cette dernière remarque a une conséquence pratique. On croyait qu'un repère
+porterait lui-même son critère de réussite (`0074`). La source officielle ne
+l'énonce pas ainsi : elle donne des questions. « Réponse attendue : 8 » est vrai
+de la question 1, pas de l'attendu « additionner des nombres entiers ». D'où une
+table à part, et une vue `reperes_generables` qui compte les deux voies.
+
+**Une confirmation qu'on n'avait pas cherchée.** La moitié des 22 questions du
+test d'automatismes de 4e porte sur des acquis du cycle 3 — tables d'addition,
+moitié d'un entier. L'évaluation nationale commence, elle aussi, en dessous du
+niveau visé. La règle posée plus bas — commencer par des réussites, puis monter —
+n'est donc pas une adaptation Xylou : c'est ainsi que l'évaluation officielle
+est construite.
 
 **Deux fois le même piège, et il vaut d'être retenu :** ni le programme en
 vigueur (0071), ni ce qui est évalué (0072) ne changent à l'échelle d'un cycle.
@@ -225,11 +246,11 @@ contrainte `bilan_valide_a_un_validateur` l'impose en base.
   obligatoire.
 - La fusion des deux sources. Règle posée d'avance : une divergence entre
   diagnostic et observation **se signale, elle ne se lisse pas**.
-- La génération du bilan, qui attend les **repères officiels** de l'Éducation
-  nationale. Ceux en base sont des formulations de travail (`source = 'amorce'`).
-  La synthèse des programmes 2026 fournie décrit l'architecture des cycles et le
-  calendrier des réformes, pas les attendus eux-mêmes — elle annonce d'ailleurs
-  que les textes complets dépassent 3 500 pages.
+- La génération du bilan elle-même : le bouton, la file, la réservation. Les
+  repères officiels ne la bloquent plus pour la 4e (`0075` et `0076`).
+- Les autres classes. La 4e est chargée parce que c'est celle de l'enfant à
+  l'origine du projet. Les documents équivalents existent pour le CP à la 6e et
+  pour la 2nde, se téléchargent librement et se chargeront de la même façon.
 
   Ce qu'elle a tout de même appris : **le programme ne bascule pas d'un bloc.**
   Au sein du cycle 4, la 5e passe aux nouveaux programmes en 2026, la 4e en
