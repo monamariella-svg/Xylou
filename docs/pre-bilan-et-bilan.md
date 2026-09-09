@@ -72,6 +72,30 @@ suppose une validation par des personnes concernées, que nous ne faisons pas.
 n'étaient pas accessibles au moment de la rédaction. À confronter aux
 recommandations européennes avant qu'elles pilotent une génération réelle.*
 
+## Contre quoi le bilan situe l'enfant
+
+Deux niveaux, et il ne faut pas les confondre.
+
+**Les domaines évalués** — la structure officielle des évaluations nationales,
+classe par classe (migration 0072). « Étude de la langue », « Nombres et
+calculs », « Fluence ». Ils sont posés et utilisables.
+
+**Les repères de compétences** — les attendus vérifiables qui se rangent dans
+ces domaines : « accorder le verbe avec son sujet ». Ceux en base sont des
+formulations de travail (`source = 'amorce'`) et restent à écrire.
+
+Le bilan peut donc déjà se structurer correctement pendant que les attendus se
+remplissent.
+
+**Deux fois le même piège, et il vaut d'être retenu :** ni le programme en
+vigueur (0071), ni ce qui est évalué (0072) ne changent à l'échelle d'un cycle.
+En cycle 4, la 5e a deux domaines de mathématiques, la 4e en a quatre. Tout ce
+qui est rangé par cycle sera un jour trop grossier.
+
+**Ce qui n'est pas couvert :** la 3e, la 1re et la terminale n'ont pas
+d'évaluation nationale de positionnement — pour elles, il faudra s'appuyer sur
+le programme. Le CAP en a une, mais ce niveau n'existe pas dans Xylou.
+
 ## Ce qui reste à faire
 
 - L'écran de saisie du pré-bilan.
