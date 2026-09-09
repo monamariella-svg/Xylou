@@ -32,6 +32,17 @@ cas de Xylan (4e, profil autiste). Voir `docs/projet.md` pour le dossier complet
   Un contenu non validé ne doit jamais être présenté à l'enfant.
 - **Jamais de comparaison à une norme neurotypique** dans les libellés affichés.
   On mesure un niveau et une progression, on ne note pas un écart.
+- **Ce que l'enfant lit s'inspire de la méthode FALC**, modulée par le pré-bilan.
+  Phrases courtes, une idée par phrase, mots courants, voix active ; ni figure
+  de style, ni sous-entendu, ni consigne à deux étages.
+  **Mais jamais au prix de ce qu'on mesure.** La règle vaut sans réserve pour
+  les consignes, les boutons et les messages de l'interface. Elle ne vaut pour
+  le contenu évalué que si la compétence visée n'en dépend pas : simplifier le
+  texte d'un exercice de compréhension écrite ne rend pas l'exercice
+  accessible, il supprime ce qu'il mesurait. C'est le pré-bilan qui dit jusqu'où
+  aller pour cet enfant-là.
+  On écrit « s'inspire de FALC », jamais « conforme FALC » : la méthode suppose
+  une validation par des personnes concernées, que nous ne faisons pas.
 - **Tout courriel sortant porte un désabonnement qui ne suppose pas de compte.**
   Un lien signé dans le pied de page, et l'en-tête `List-Unsubscribe-Post` pour
   le bouton que les messageries affichent elles-mêmes (`src/lib/desabonnement.ts`).
