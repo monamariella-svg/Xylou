@@ -79,5 +79,14 @@ recommandations européennes avant qu'elles pilotent une génération réelle.*
   obligatoire.
 - La fusion des deux sources. Règle posée d'avance : une divergence entre
   diagnostic et observation **se signale, elle ne se lisse pas**.
-- La génération du bilan, qui attend aussi les repères officiels de
-  l'Éducation nationale — ceux en base sont des formulations de travail.
+- La génération du bilan, qui attend les **repères officiels** de l'Éducation
+  nationale. Ceux en base sont des formulations de travail (`source = 'amorce'`).
+  La synthèse des programmes 2026 fournie décrit l'architecture des cycles et le
+  calendrier des réformes, pas les attendus eux-mêmes — elle annonce d'ailleurs
+  que les textes complets dépassent 3 500 pages.
+
+  Ce qu'elle a tout de même appris : **le programme ne bascule pas d'un bloc.**
+  Au sein du cycle 4, la 5e passe aux nouveaux programmes en 2026, la 4e en
+  2027, la 3e en 2028. La validité se joue donc par classe et par rentrée, ce
+  que la migration 0071 enregistre. Un bilan reste ainsi lisible contre le
+  programme qui s'appliquait à cet enfant-là, cette année-là.
