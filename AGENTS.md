@@ -32,6 +32,15 @@ cas de Xylan (4e, profil autiste). Voir `docs/projet.md` pour le dossier complet
   Un contenu non validé ne doit jamais être présenté à l'enfant.
 - **Jamais de comparaison à une norme neurotypique** dans les libellés affichés.
   On mesure un niveau et une progression, on ne note pas un écart.
+- **Un seul endroit parle au modèle : `src/lib/ia/`.** Rien d'autre n'importe
+  de SDK de fournisseur, ni ne lit `ANTHROPIC_API_KEY`. Trois raisons, dont
+  aucune ne survit à la dispersion des appels : le contenu d'un prompt ne doit
+  jamais atterrir dans un journal, le budget du §3.7 n'est tenable que mesuré,
+  et aucune sortie de modèle ne s'applique sans relecture humaine.
+  Cette règle a un quatrième effet, qui n'est pas un bonus : changer de
+  fournisseur ne coûte qu'un fichier. L'interface publique n'expose aucun type
+  du SDK, et `journal_ia.modele` est du texte libre. C'est une propriété qui
+  s'érode en silence — il suffit d'un écran pressé qui appelle directement.
 - **Ce que l'enfant lit s'inspire de la méthode FALC**, modulée par le pré-bilan.
   Phrases courtes, une idée par phrase, mots courants, voix active ; ni figure
   de style, ni sous-entendu, ni consigne à deux étages.
