@@ -8,7 +8,7 @@ Rien de ce qui suit ne constitue un avis juridique. Les arbitrages provisoires
 ont été pris pour ne pas bloquer le développement ; plusieurs sont réversibles à
 peu de frais, quelques-uns ne le sont pas — ils sont signalés.
 
-Dernière mise à jour : 7 septembre 2026.
+Dernière mise à jour : 9 septembre 2026.
 
 ---
 
@@ -231,9 +231,48 @@ humaine que nous imposons suffit-elle à sortir du champ ?
 et leur longueur, pour éviter de reconstituer des données de santé depuis les
 journaux. Cette précaution est-elle attendue, ou insuffisante ?
 
+**6.5 — CHANGER DE FOURNISSEUR EN COURS DE ROUTE.** Techniquement, le
+changement coûte un fichier : un seul endroit du code parle au modèle, et
+l'interface n'expose rien du fournisseur. Juridiquement, nous ne savons pas ce
+qu'il déclenche.
+
+Trois questions qui en découlent, et qui ne se posent qu'une fois qu'il y a des
+familles :
+
+- le consentement `generation_ia` a été signé sur un texte qui, s'il nomme le
+  sous-traitant, ne vaut plus pour un autre. Faut-il **re-signer**, comme pour
+  une republication de texte (§1.7) ? Ou suffit-il d'informer ?
+- l'**AIPD** est-elle à refaire, ou seulement à mettre à jour ? La réponse
+  change le coût d'un changement d'avis, donc la liberté qu'on garde ;
+- si l'ancien fournisseur a traité des données pendant six mois, que devient
+  cette période ? Y a-t-il quelque chose à en dire aux familles ?
+
+*Ce que nous en ferions faute de réponse* : nommer le sous-traitant dans le
+texte de consentement, ce qui rend le changement plus lourd mais l'information
+plus honnête. Nous préférerions savoir si l'on peut faire autrement.
+
+**6.6 — OÙ SONT TRAITÉES LES DONNÉES.** Le choix du fournisseur est encore
+ouvert, et le lieu de traitement pèse plus lourd que le prix : l'écart de coût
+entre fournisseurs, à l'échelle du pilote, se compte en centaines d'euros par
+an. Un traitement resté dans l'Union européenne simplifierait-il assez le §6.2
+pour valoir d'être un critère de choix — voire le critère principal ?
+
+**6.7 — AI ACT.** L'architecture du bilan note une proximité avec l'annexe III
+(profilage, orientation) : le profil produit oriente des décisions pédagogiques.
+Xylou tombe-t-il dans une catégorie réglementée, et si oui laquelle, avec quelles
+obligations ? La question est distincte du RGPD et n'a jamais été instruite ici.
+
+**6.8 — LA GÉNÉRATION EST UN GESTE, PAS UN AUTOMATISME.** Un bilan ne se génère
+que si un référent le demande explicitement, enfant par enfant. Ce choix a été
+fait pour ne pas dépenser inutilement, mais il a un effet juridique qu'il faut
+peut-être nommer : il place une décision humaine **avant** le traitement, et pas
+seulement après. Cela change-t-il quelque chose au regard de l'article 22
+(§6.3) ?
+
 *Provisoire dans le schéma* : table `journal_ia` sans contenu de prompt,
 consentement `generation_ia` distinct, validation humaine imposée par contrainte
-de base.
+de base. `src/lib/ia/` est le seul point d'appel, ce qui rend le fournisseur
+remplaçable côté code — la question 6.5 porte sur ce que cela coûte ailleurs.
 
 ---
 

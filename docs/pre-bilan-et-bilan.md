@@ -96,6 +96,66 @@ qui est rangé par cycle sera un jour trop grossier.
 d'évaluation nationale de positionnement — pour elles, il faudra s'appuyer sur
 le programme. Le CAP en a une, mais ce niveau n'existe pas dans Xylou.
 
+## Générer un bilan : un geste, jamais un automatisme
+
+**Un bouton « Générer un bilan », à la main du référent, enfant par enfant.**
+Rien ne se génère tout seul : une génération coûte de l'argent, et un bilan
+produit pour un enfant qui ne le passera pas est une dépense pour rien.
+
+### Ce que le bouton doit vérifier avant de s'activer
+
+Un bilan généré sans ce qu'il faut n'est pas un bilan raté, c'est un bilan
+générique — donc exactement ce que tout ce travail cherche à éviter. Le bouton
+reste donc inactif, **en disant pourquoi**, tant que :
+
+- aucun **pré-bilan** n'a été rempli — sans lui, la génération produirait un
+  bilan standard et mesurerait le handicap de l'enfant plutôt que ses savoirs ;
+- les **autorisations** ne sont pas signées, `generation_ia` en particulier ;
+- la **classe** n'est pas renseignée : elle décide des domaines évalués, et
+  ceux-ci diffèrent d'une classe à l'autre au sein d'un même cycle (0072).
+
+Un bouton grisé sans explication produit un appel au référent. Le message doit
+dire ce qui manque et mener à l'écran qui le règle.
+
+### Plusieurs enfants à la fois
+
+Un référent prépare une séance pour son groupe, pas pour un enfant. Le besoin
+est réel — mais il change la nature du problème.
+
+**Douze générations ne tiennent pas dans une requête.** Chacune prend des
+dizaines de secondes ; une boucle synchrone dépasserait la limite d'exécution
+d'une fonction serverless, et le référent verrait une page d'erreur au milieu,
+sans savoir lesquels sont partis.
+
+C'est exactement la situation de la file d'envoi (`0059`), et la réponse est la
+même : **une file, pas une boucle.** Le bouton dépose des demandes, un
+traitement de fond les prend une par une, l'écran montre l'avancement. Une
+génération qui échoue se rejoue sans refaire les onze autres.
+
+Et la même précaution qu'en `0068` s'appliquera : réserver avant de traiter.
+Deux passages simultanés sur la même demande, ce sont deux factures pour un
+seul bilan.
+
+### Ce qui protège déjà contre le double clic
+
+`bilans_positionnement` porte depuis `0004` un index unique
+`bilans_un_seul_en_cours` : un seul bilan ouvert par enfant. Deux clics
+successifs ne peuvent donc pas ouvrir deux bilans — la base refuse le second.
+C'était écrit pour éviter deux niveaux contradictoires ; ça protège aussi le
+budget.
+
+### Dire ce que ça coûte avant de cliquer
+
+Puisque le but est de ne pas générer pour rien, l'écran doit annoncer l'ordre de
+grandeur — durée, et coût si on le suit. `journal_ia` et la vue
+`cout_ia_mensuel` (0008) ont tout ce qu'il faut.
+
+### Générer n'est pas publier
+
+La génération produit un brouillon. Rien n'est présenté à l'enfant avant
+relecture humaine — `valide_par` et `valide_le` de `0004` sont là pour ça, et la
+contrainte `bilan_valide_a_un_validateur` l'impose en base.
+
 ## Ce qui reste à faire
 
 - L'écran de saisie du pré-bilan.
