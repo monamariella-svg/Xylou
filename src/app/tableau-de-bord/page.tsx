@@ -7,7 +7,7 @@ import {
   type NiveauClasse,
   type UniversMoteur,
 } from "@/lib/domaine";
-import { marquerToutCommeLu } from "./actions";
+import { marquerToutCommeLu } from "@/app/notifications/actions";
 
 type ProjetMoteur = { titre: string; univers: UniversMoteur; actif: boolean };
 type LigneEnfant = {
@@ -22,8 +22,6 @@ type Notification = {
   id: string;
   titre: string;
   corps: string;
-  lien: string;
-  cree_le: string;
 };
 
 export default async function PageTableauDeBord() {
@@ -45,7 +43,7 @@ export default async function PageTableauDeBord() {
       .maybeSingle(),
     supabase
       .from("notifications")
-      .select("id, titre, corps, lien, cree_le")
+      .select("id, titre, corps")
       .is("lue_le", null)
       .order("cree_le", { ascending: false })
       .limit(6),
@@ -102,7 +100,11 @@ export default async function PageTableauDeBord() {
             {notifications.map((n) => (
               <li key={n.id}>
                 <Link
-                  href={n.lien || "/tableau-de-bord"}
+                  // Le détour par /notifications/[id] marque la ligne lue avant
+                  // de mener où elle mène ; d'où `prefetch` désactivé, sans quoi
+                  // le survol suffirait à la marquer.
+                  prefetch={false}
+                  href={`/notifications/${n.id}`}
                   className="block rounded-lg border border-bordure bg-surface p-3 hover:border-accent"
                 >
                   <span className="block text-sm font-medium">{n.titre}</span>
@@ -113,6 +115,15 @@ export default async function PageTableauDeBord() {
               </li>
             ))}
           </ul>
+
+          {/* Le tableau de bord n'en montre que six : sans cette sortie, la
+              septième n'existe pour personne. */}
+          <Link
+            href="/notifications"
+            className="inline-block text-xs text-texte-doux hover:text-accent hover:underline"
+          >
+            Voir toutes les notifications
+          </Link>
         </section>
       ) : null}
 

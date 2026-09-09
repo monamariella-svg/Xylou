@@ -1,11 +1,12 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { jetonDesabonnement, secretDesabonnementConfigure } from "@/lib/desabonnement";
 
 /**
  * Vide la file d'envoi de la migration 0059.
  *
- * Appelé par une tâche planifiée, ou à la main. Rien ne l'appelle depuis
- * l'interface : un envoi déclenché par une action utilisateur échouerait en
- * silence, ce que la file existe précisément pour éviter.
+ * Appelé par la tâche planifiée de `vercel.json`, ou à la main. Rien ne
+ * l'appelle depuis l'interface : un envoi déclenché par une action utilisateur
+ * échouerait en silence, ce que la file existe précisément pour éviter.
  *
  * ---------------------------------------------------------------------------
  * POURQUOI RESEND EN HTTP DIRECT, SANS DÉPENDANCE
@@ -14,6 +15,12 @@ import { createServiceClient } from "@/lib/supabase/service";
  * tenir à jour dans un projet qui en a déjà peu. L'API tient en une requête.
  * ---------------------------------------------------------------------------
  */
+
+// Un passage traite jusqu'à LOT courriels, séquentiellement. Le défaut de 10 s
+// d'une fonction Vercel les couperait au milieu — et un envoi coupé après
+// l'appel à Resend mais avant la mise à jour de la ligne repart au passage
+// suivant, c'est-à-dire arrive deux fois.
+export const maxDuration = 60;
 
 // Au-delà, on cesse de réessayer. Cinq tentatives couvrent une panne passagère ;
 // s'il en faut plus, c'est que la configuration est en cause, et réessayer
@@ -24,8 +31,19 @@ const TENTATIVES_MAX = 5;
 // dure pas plus longtemps que la limite d'exécution d'une fonction serverless.
 const LOT = 50;
 
+// Le pied de page annonçait qu'on peut choisir ce qu'on reçoit sans dire où.
+// Une promesse sans lien est une promesse qu'on ne tient pas : c'est le
+// destinataire qui doit pouvoir arrêter un courriel, pas nous.
+const CHEMIN_PREFERENCES = "/notifications/preferences";
+
+// Et l'arrêt complet, lui, ne suppose aucune session : c'est ce qui permettra
+// d'écrire à quelqu'un qui n'a pas encore de compte.
+const CHEMIN_DESABONNEMENT = "/desabonnement";
+const CHEMIN_DESABONNEMENT_UN_CLIC = "/api/desabonnement";
+
 type Envoi = {
   id: string;
+  destinataire_id: string;
   canal: string;
   adresse: string;
   sujet: string;
@@ -45,7 +63,7 @@ function autorise(request: Request): boolean {
   return entete === `Bearer ${attendu}`;
 }
 
-function corpsHtml(envoi: Envoi, base: string): string {
+function corpsHtml(envoi: Envoi, base: string, jeton: string): string {
   const lien = envoi.lien
     ? `<p style="margin:24px 0"><a href="${base}${envoi.lien}" style="background:#1B6C78;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">Ouvrir dans Xylou</a></p>`
     : "";
@@ -56,7 +74,9 @@ ${envoi.corps ? `<p style="margin:0">${echapper(envoi.corps)}</p>` : ""}
 ${lien}
 <p style="font-size:13px;color:#5E6B78;margin-top:28px;border-top:1px solid #DFE5EB;padding-top:12px">
 Vous recevez ce message parce que vous accompagnez un enfant suivi dans Xylou.
-Vous pouvez choisir ce qui vous est notifié depuis votre compte.</p>
+<a href="${base}${CHEMIN_PREFERENCES}" style="color:#5E6B78">Choisir ce qui vous est notifié</a>
+&nbsp;·&nbsp;
+<a href="${base}${CHEMIN_DESABONNEMENT}?jeton=${jeton}" style="color:#5E6B78">Ne plus rien recevoir</a>.</p>
 </div>`;
 }
 
@@ -67,34 +87,49 @@ function echapper(texte: string): string {
     .replace(/>/g, "&gt;");
 }
 
-export async function POST(request: Request) {
+async function viderLaFile(request: Request) {
   if (!autorise(request)) {
     return new Response("Non autorisé", { status: 401 });
   }
 
   const cleResend = process.env.RESEND_API_KEY;
   const expediteur = process.env.RESEND_FROM;
-  const base = process.env.XYLOU_URL_PUBLIQUE ?? "";
 
-  if (!cleResend || !expediteur) {
+  // Les liens d'une notification sont des chemins applicatifs — « /enfants/…/
+  // echanges/… ». Sans origine devant, le bouton du courriel ne mène nulle
+  // part. On refuse de partir plutôt que d'expédier un lot de messages dont
+  // aucun n'est cliquable : un courriel envoyé ne se rattrape pas.
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/+$/, "");
+
+  // Le secret de désabonnement est au même rang que les autres : sans lui, les
+  // liens du pied de page ne se signent pas, et le courriel partirait en
+  // promettant un arrêt qu'il ne permet pas. Voir AGENTS.md, « Aucun courriel
+  // vers quelqu'un qui n'a pas de compte ».
+  if (!cleResend || !expediteur || !base || !secretDesabonnementConfigure()) {
     return Response.json(
-      { erreur: "RESEND_API_KEY et RESEND_FROM sont nécessaires." },
+      {
+        erreur:
+          "RESEND_API_KEY, RESEND_FROM, NEXT_PUBLIC_SITE_URL et " +
+          "XYLOU_SECRET_DESABONNEMENT sont nécessaires.",
+      },
       { status: 500 },
     );
   }
 
   const supabase = createServiceClient();
 
-  // On reprend aussi les échecs récupérables : un envoi raté une fois doit
-  // repartir au passage suivant, sinon la file se remplit d'attentes que rien
-  // ne relance.
-  const { data, error } = await supabase
-    .from("envois")
-    .select("id, canal, adresse, sujet, corps, lien, tentatives")
-    .eq("canal", "courriel")
-    .or(`statut.eq.a_envoyer,and(statut.eq.echec,tentatives.lt.${TENTATIVES_MAX})`)
-    .order("cree_le", { ascending: true })
-    .limit(LOT);
+  // Réserver, et non lire : depuis 0068, trois déclencheurs peuvent appeler
+  // cette route — la sonnette à l'insertion, pg_cron, la tâche quotidienne. Un
+  // simple SELECT laisserait deux passages simultanés expédier le même
+  // courriel. `reserver_envois()` marque les lignes et les rend d'un seul
+  // geste ; deux passages qui se recouvrent se partagent alors le travail.
+  //
+  // Les seuils restent ici et voyagent en paramètres : la règle « cinq
+  // tentatives » appartient à ce fichier, pas à la base.
+  const { data, error } = await supabase.rpc("reserver_envois", {
+    p_lot: LOT,
+    p_tentatives_max: TENTATIVES_MAX,
+  });
 
   if (error) {
     return Response.json({ erreur: error.message }, { status: 500 });
@@ -106,6 +141,8 @@ export async function POST(request: Request) {
 
   for (const envoi of envois) {
     try {
+      const jeton = jetonDesabonnement(envoi.destinataire_id);
+
       const reponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -116,7 +153,19 @@ export async function POST(request: Request) {
           from: expediteur,
           to: [envoi.adresse],
           subject: envoi.sujet,
-          html: corpsHtml(envoi, base),
+          html: corpsHtml(envoi, base, jeton),
+          headers: {
+            // Le bouton « se désabonner » que la messagerie affiche elle-même.
+            // Sans lui, qui ne veut plus de ces courriels n'a qu'un geste à sa
+            // portée : les signaler comme indésirables — ce qui abîme la
+            // réputation du domaine, et finit par empêcher les alertes
+            // d'arriver aux autres familles.
+            "List-Unsubscribe": `<${base}${CHEMIN_DESABONNEMENT_UN_CLIC}?jeton=${jeton}>`,
+            // RFC 8058 : la messagerie appelle l'adresse ci-dessus en POST, et
+            // rien ne s'ouvre pour le destinataire. Les deux en-têtes vont
+            // ensemble — celui-ci seul ne veut rien dire.
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
         }),
       });
 
@@ -160,3 +209,10 @@ export async function POST(request: Request) {
   // s'en apercevoir sans lire de journal.
   return Response.json({ traites: envois.length, envoyes, echoues });
 }
+
+// Vercel Cron n'appelle qu'en GET : n'exposer que POST rendait la tâche
+// planifiée impossible à brancher, et l'erreur serait passée pour une panne
+// d'envoi plutôt que pour un 405. Les deux verbes font la même chose — POST
+// reste le bon choix pour un appel à la main ou depuis un autre ordonnanceur.
+export const GET = viderLaFile;
+export const POST = viderLaFile;

@@ -45,6 +45,53 @@ nouveau fichier numéroté.
 > remplacés par les repères Éduscol correspondants avant qu'un enfant passe un
 > bilan.
 
+## Envoyer les notifications
+
+Une notification naît en base — un objectif à valider, un message, une
+habilitation traitée — et un trigger la met en file (`envois`). Rien ne sort
+tant que la file n'est pas vidée : `POST` ou `GET /api/envois` s'en charge,
+protégé par `CRON_SECRET`.
+
+Trois déclencheurs la vident, du plus rapide au plus sûr (migration `0068`) :
+
+| Déclencheur | Délai | Rôle |
+| --- | --- | --- |
+| Sonnette `pg_net` sur `envois` | quelques secondes | le cas normal |
+| `pg_cron`, toutes les 5 min | 5 min | rattrape les échecs et ce que la sonnette a perdu |
+| Tâche Vercel, quotidienne | 24 h | dernier filet si les extensions sont tombées |
+
+Le plan Hobby de Vercel ne déclenche de toute façon qu'une fois par jour : c'est
+pourquoi `vercel.json` n'est plus la cadence principale mais le filet extérieur.
+
+**Trois choses à faire une fois, côté Supabase**, sans quoi seul le filet
+quotidien fonctionne :
+
+1. activer `pg_net` et `pg_cron` (Database &rsaquo; Extensions) ;
+2. créer deux secrets dans Vault — `xylou_url_envois` (l'adresse complète de
+   `/api/envois`) et `xylou_cron_secret` (la même valeur que `CRON_SECRET`) ;
+3. planifier le balayage : la commande `cron.schedule` est donnée en fin de
+   migration `0068`, à copier telle quelle.
+
+Un envoi n'est jamais expédié deux fois même si les trois déclencheurs se
+recouvrent : `reserver_envois()` réserve les lignes avant l'appel à Resend, et
+deux passages simultanés se partagent le travail au lieu de le refaire.
+
+En local, sans tâche planifiée :
+
+```bash
+curl -X POST localhost:3000/api/envois -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Les envois qui échouent restent visibles dans `/administration`, ce qui est le
+seul endroit où l'on s'aperçoit qu'une clé a expiré avant qu'une famille le
+signale.
+
+Chaque courriel porte un désabonnement qui ne suppose aucun compte : un lien
+signé dans le pied de page, et l'en-tête `List-Unsubscribe-Post` pour le bouton
+que les messageries affichent d'elles-mêmes. C'est ce qui permettra d'écrire un
+jour à quelqu'un qui n'a pas encore de compte — l'invitation d'un enseignant,
+notamment. La route refuse de partir si `XYLOU_SECRET_DESABONNEMENT` manque.
+
 ## Architecture
 
 ```

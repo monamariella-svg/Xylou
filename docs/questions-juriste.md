@@ -8,7 +8,7 @@ Rien de ce qui suit ne constitue un avis juridique. Les arbitrages provisoires
 ont été pris pour ne pas bloquer le développement ; plusieurs sont réversibles à
 peu de frais, quelques-uns ne le sont pas — ils sont signalés.
 
-Dernière mise à jour : 25 août 2026.
+Dernière mise à jour : 9 septembre 2026.
 
 ---
 
@@ -231,9 +231,48 @@ humaine que nous imposons suffit-elle à sortir du champ ?
 et leur longueur, pour éviter de reconstituer des données de santé depuis les
 journaux. Cette précaution est-elle attendue, ou insuffisante ?
 
+**6.5 — CHANGER DE FOURNISSEUR EN COURS DE ROUTE.** Techniquement, le
+changement coûte un fichier : un seul endroit du code parle au modèle, et
+l'interface n'expose rien du fournisseur. Juridiquement, nous ne savons pas ce
+qu'il déclenche.
+
+Trois questions qui en découlent, et qui ne se posent qu'une fois qu'il y a des
+familles :
+
+- le consentement `generation_ia` a été signé sur un texte qui, s'il nomme le
+  sous-traitant, ne vaut plus pour un autre. Faut-il **re-signer**, comme pour
+  une republication de texte (§1.7) ? Ou suffit-il d'informer ?
+- l'**AIPD** est-elle à refaire, ou seulement à mettre à jour ? La réponse
+  change le coût d'un changement d'avis, donc la liberté qu'on garde ;
+- si l'ancien fournisseur a traité des données pendant six mois, que devient
+  cette période ? Y a-t-il quelque chose à en dire aux familles ?
+
+*Ce que nous en ferions faute de réponse* : nommer le sous-traitant dans le
+texte de consentement, ce qui rend le changement plus lourd mais l'information
+plus honnête. Nous préférerions savoir si l'on peut faire autrement.
+
+**6.6 — OÙ SONT TRAITÉES LES DONNÉES.** Le choix du fournisseur est encore
+ouvert, et le lieu de traitement pèse plus lourd que le prix : l'écart de coût
+entre fournisseurs, à l'échelle du pilote, se compte en centaines d'euros par
+an. Un traitement resté dans l'Union européenne simplifierait-il assez le §6.2
+pour valoir d'être un critère de choix — voire le critère principal ?
+
+**6.7 — AI ACT.** L'architecture du bilan note une proximité avec l'annexe III
+(profilage, orientation) : le profil produit oriente des décisions pédagogiques.
+Xylou tombe-t-il dans une catégorie réglementée, et si oui laquelle, avec quelles
+obligations ? La question est distincte du RGPD et n'a jamais été instruite ici.
+
+**6.8 — LA GÉNÉRATION EST UN GESTE, PAS UN AUTOMATISME.** Un bilan ne se génère
+que si un référent le demande explicitement, enfant par enfant. Ce choix a été
+fait pour ne pas dépenser inutilement, mais il a un effet juridique qu'il faut
+peut-être nommer : il place une décision humaine **avant** le traitement, et pas
+seulement après. Cela change-t-il quelque chose au regard de l'article 22
+(§6.3) ?
+
 *Provisoire dans le schéma* : table `journal_ia` sans contenu de prompt,
 consentement `generation_ia` distinct, validation humaine imposée par contrainte
-de base.
+de base. `src/lib/ia/` est le seul point d'appel, ce qui rend le fournisseur
+remplaçable côté code — la question 6.5 porte sur ce que cela coûte ailleurs.
 
 ---
 
@@ -367,6 +406,80 @@ d'un encadrement spécifique dès lors qu'aucun paiement n'intervient ?
 
 **8.8 Ce qu'un enfant ne voit pas de son propre dossier**, si nous lui ouvrons un
 compte — voir la question ouverte sur les comptes enfants.
+
+---
+
+## 9. Notifications sortantes
+
+Depuis la mise en service de la file d'envoi, une notification née en base part
+réellement par courriel. Quatre questions se posent, dont une qui n'est pas
+seulement juridique.
+
+**9.1** Ces courriels sont des **notifications de service** adressées à des
+titulaires de compte, non de la prospection. La distinction change-t-elle
+quelque chose ? Faut-il un accord préalable pour les envoyer, ou l'ouverture
+d'un compte et l'acceptation des CGU y suffisent-elles ?
+
+**9.2** Le retrait doit être aussi facile que l'accord (art. 7-3). Notre écran
+de préférences est **derrière une session** : la personne doit se connecter pour
+couper un courriel. Est-ce une voie de retrait suffisante pour des notifications
+de service, ou faut-il un désabonnement accessible **sans compte**, depuis le
+courriel lui-même ?
+
+**9.3** Aujourd'hui la question reste théorique : aucune notification ne part
+vers quelqu'un qui n'a pas de compte — la table n'a de destinataire que parmi
+les profils. **Elle cessera de l'être le jour où l'invitation d'un enseignant
+partira par courriel**, puisque son destinataire n'a par définition pas encore
+de compte, et ne peut donc atteindre aucun écran de préférences. Faut-il traiter
+ce cas différemment des autres ?
+
+**9.4 — LA QUESTION QUI N'EST PAS QUE JURIDIQUE.** Le courriel ne dit pas
+seulement qu'une notification attend : **il en recopie le titre et le corps**.
+Ce qui sort aujourd'hui, en clair, dans la boîte personnelle du destinataire :
+
+> **Blocage répété : accorder le verbe avec son sujet**
+> 4 échecs d'affilée, sans réussite intercalée.
+
+> **Accès administratif au dossier**
+> Motif : *(le motif écrit par l'administrateur)*
+
+> **Modification demandée : *(intitulé de l'objectif)***
+
+Et pour un message, le **sujet du fil**, écrit librement par un membre de
+l'équipe — donc susceptible de porter n'importe quoi, y compris « Compte rendu
+orthophonie ».
+
+Le prénom de l'enfant n'y figure pas ; le lien ne porte qu'un identifiant
+opaque. Mais l'énoncé reste une affirmation sur les difficultés d'un enfant
+identifiable par son destinataire, acheminée par un canal que nous ne
+maîtrisons pas et conservée indéfiniment chez un fournisseur de messagerie.
+
+Est-ce acceptable au regard du §3.4 (donnée de santé), ou le courriel doit-il se
+réduire à « une notification vous attend » et un lien, tout le contenu restant
+dans l'application derrière une authentification ?
+
+*Nous savons faire les deux.* La seconde option coûte peu à mettre en œuvre et
+coûte cher à l'usage : un parent qui reçoit « une notification vous attend »
+quinze fois par semaine cesse de les ouvrir, et l'alerte de blocage — celle qui
+doit faire réagir avant le découragement (§3.4) — se noie avec les autres. Nous
+attendons votre avis avant de trancher, et non l'inverse.
+
+*Provisoire dans le code* : le courriel recopie titre et corps. Les types les
+plus anodins ne sortent déjà pas — un badge obtenu, une récompense atteinte
+restent dans l'application. Ce sont donc, par construction, les notifications
+**les plus substantielles** qui partent en clair.
+
+*Provisoire dans le schéma* : `preferences_notification` (0059) permet de couper
+type par type, et `types_notifies_hors_application()` (0067) dit lesquels
+sortent.
+
+*Fait, et non plus à faire* : chaque courriel porte un désabonnement qui ne
+suppose aucun compte — lien signé dans le pied de page, en-tête
+`List-Unsubscribe-Post` pour le bouton des messageries (RFC 8058). Le jeton
+signe l'identifiant de profil, n'expire pas, n'ouvre aucune session et ne
+permet qu'une chose : couper les courriels. Les questions 9.1 à 9.3 restent
+posées, mais elles ne conditionnent plus l'envoi d'une invitation : la voie de
+retrait existe désormais pour qui n'a pas de compte.
 
 ---
 

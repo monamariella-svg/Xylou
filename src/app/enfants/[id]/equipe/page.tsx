@@ -6,13 +6,6 @@ import { FormulaireInvitation } from "./FormulaireInvitation";
 import { LigneIntervenant, type Intervenant } from "./LigneIntervenant";
 import { LigneInvitation } from "./LigneInvitation";
 
-const LIBELLE_ROLE: Record<string, string> = {
-  parent: "Titulaire de l’autorité parentale",
-  referent: "Référent",
-  enseignant: "Enseignant",
-  accompagnant: "AESH ou accompagnant",
-};
-
 type Profil = { prenom: string | null; nom: string | null; email: string | null };
 
 // Sans types générés, l'inférence ne sait pas que `profils` est un lien de
@@ -24,12 +17,6 @@ function premierProfil(valeur: unknown): Profil | null {
   if (!valeur) return null;
   if (Array.isArray(valeur)) return (valeur[0] as Profil) ?? null;
   return valeur as Profil;
-}
-
-function nommer(profil: Profil | null): string {
-  if (!profil) return "Compte inconnu";
-  const nom = [profil.prenom, profil.nom].filter(Boolean).join(" ").trim();
-  return nom || profil.email || "Compte sans nom";
 }
 
 export default async function PageEquipe({
